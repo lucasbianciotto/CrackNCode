@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LevelCard } from "@/components/language/LevelCard";
 import { LevelModal } from "@/components/language/LevelModal";
-import { languages } from "@/data/languages";
+import {getLanguageLevelsCount, languages} from "@/data/languages";
 import { levels } from "@/data/levels";
 import { Level } from "@/types";
 import { ArrowLeft, Trophy, Target } from "lucide-react";
@@ -14,10 +14,14 @@ const Language = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
-  
+
   const language = languages.find((lang) => lang.id === id);
   const languageLevels = levels[id || ""] || [];
-  
+
+  const total = getLanguageLevelsCount(language.id);
+  const raw = total ? (language.completedLevels / total) * 100 : 0;
+  const percent = Math.min(100, Math.max(0, Math.round(raw)));
+
   if (!language) {
     return (
       <AppLayout>
@@ -30,20 +34,20 @@ const Language = () => {
       </AppLayout>
     );
   }
-  
+
   const handleLevelClick = (level: Level) => {
     if (!level.isLocked) {
-      setSelectedLevel(level);
+      navigate(`/language/${id}/level/${level.id}`)
     }
   };
-  
+
   const handlePlay = () => {
     toast.info("Mini-jeu à implémenter", {
       description: `Le niveau "${selectedLevel?.title}" sera disponible prochainement !`,
     });
     setSelectedLevel(null);
   };
-  
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -56,7 +60,7 @@ const Language = () => {
           <ArrowLeft className="w-4 h-4" />
           Retour
         </Button>
-        
+
         {/* Language Header */}
         <div
           className="rounded-2xl p-8 border border-border"
@@ -69,7 +73,7 @@ const Language = () => {
             >
               {language.icon}
             </div>
-            
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 {language.name}
@@ -77,7 +81,7 @@ const Language = () => {
               <p className="text-muted-foreground text-lg mb-4">
                 {language.description}
               </p>
-              
+
               <div className="flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-accent" />
@@ -88,23 +92,23 @@ const Language = () => {
                 <div className="flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-primary" />
                   <span className="text-foreground font-medium">
-                    {language.completedLevels}/{language.totalLevels} niveaux
+                    {language.completedLevels}/{getLanguageLevelsCount(language.id)} niveaux
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-foreground">Progression globale</span>
-              <span className="font-bold text-foreground">{language.progress}%</span>
+              <span className="font-bold text-foreground">{percent}%</span>
             </div>
             <div className="xp-bar h-4">
               <div
                 className="xp-bar-fill"
-                style={{ width: `${language.progress}%` }}
+                style={{ width: `${percent}%` }}
               />
             </div>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -113,13 +117,13 @@ const Language = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Levels List */}
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-4">
             Niveaux disponibles
           </h2>
-          
+
           <div className="grid gap-3">
             {languageLevels.map((level) => (
               <LevelCard
@@ -129,7 +133,7 @@ const Language = () => {
               />
             ))}
           </div>
-          
+
           {languageLevels.length === 0 && (
             <p className="text-center text-muted-foreground py-8">
               Aucun niveau disponible pour le moment.
@@ -137,7 +141,7 @@ const Language = () => {
           )}
         </div>
       </div>
-      
+
       {/* Level Modal */}
       <LevelModal
         level={selectedLevel}

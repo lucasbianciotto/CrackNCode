@@ -1,6 +1,7 @@
 import { Language } from "@/types";
 import { Card } from "@/components/ui/card";
 import { ChevronRight, Trophy } from "lucide-react";
+import {getLanguageLevelsCount} from "@/data/languages.ts";
 
 interface LanguageCardProps {
   language: Language;
@@ -8,6 +9,10 @@ interface LanguageCardProps {
 }
 
 export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
+  const total = getLanguageLevelsCount(language.id);
+  const raw = total ? (language.completedLevels / total) * 100 : 0;
+  const percent = Math.min(100, Math.max(0, Math.round(raw)));
+
   return (
     <Card
       className="cursor-pointer card-hover border-border bg-card overflow-hidden group"
@@ -43,7 +48,7 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
                 </span>
               </div>
               <div className="text-muted-foreground">
-                {language.completedLevels}/{language.totalLevels} niveaux
+                {language.completedLevels}/{getLanguageLevelsCount(language.id)} niveaux
               </div>
             </div>
             
@@ -51,12 +56,12 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Progression</span>
-                <span className="font-bold text-foreground">{language.progress}%</span>
+                <span className="font-bold text-foreground">{percent}%</span>
               </div>
               <div className="xp-bar">
                 <div
                   className="xp-bar-fill"
-                  style={{ width: `${language.progress}%` }}
+                  style={{ width: `${percent}%` }}
                 />
               </div>
               <div className="text-xs text-muted-foreground">
