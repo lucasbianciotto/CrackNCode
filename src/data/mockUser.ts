@@ -1,6 +1,6 @@
 import { UserProfile } from "@/types";
 
-export const mockUser: UserProfile = {
+export const mockUser: UserProfile & { avatarOptions?: any } = {
   id: "user-1",
   username: "DevMaster",
   level: 12,

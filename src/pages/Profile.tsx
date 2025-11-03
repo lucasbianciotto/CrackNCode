@@ -3,12 +3,35 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { mockUser } from "@/data/mockUser";
 import { Card } from "@/components/ui/card";
 import { Award, TrendingUp, Calendar } from "lucide-react";
+import { useState } from "react";
+import { AvatarCustomizer, AvatarOptions } from "@/components/profile/AvatarCustomizer";
+import { Dialog, DialogTrigger, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const Profile = () => {
+  const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
+  const [open, setOpen] = useState(false);
+
   return (
     <AppLayout>
       <div className="space-y-6">
-        <ProfileHeader user={mockUser} />
+        <ProfileHeader user={{ ...mockUser, avatarOptions }} />
+        
+        <div className="mt-6">
+          <h2 className="text-lg font-bold mb-2">Personnaliser mon avatar</h2>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="mt-2">Modifier mon avatar</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <h2 className="text-lg font-bold mb-4">Personnaliser mon avatar</h2>
+              <AvatarCustomizer onChange={setAvatarOptions} />
+              <DialogClose asChild>
+                <Button className="mt-4 w-full">Fermer</Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
+        </div>
         
         {/* Achievements Section */}
         <Card className="p-6 bg-card border-border">

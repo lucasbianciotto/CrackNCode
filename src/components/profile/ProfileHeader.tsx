@@ -1,21 +1,38 @@
 import { UserProfile } from "@/types";
 import { Trophy, Target, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Avataaars } from "@/components/ui/Avataaars";
 
 interface ProfileHeaderProps {
-  user: UserProfile;
+  user: UserProfile & { avatarOptions?: any };
 }
 
 export const ProfileHeader = ({ user }: ProfileHeaderProps) => {
   const xpPercentage = (user.currentXP / user.xpToNextLevel) * 100;
+  const avatarProps = user.avatarOptions || {
+    avatarStyle: "Circle",
+    topType: "ShortHairShortFlat",
+    accessoriesType: "Blank",
+    hairColor: "Brown",
+    facialHairType: "Blank",
+    clotheType: "Hoodie",
+    clotheColor: "Blue03",
+    eyeType: "Default",
+    eyebrowType: "Default",
+    mouthType: "Smile",
+    skinColor: "Light",
+  };
   
   return (
     <Card className="p-6 bg-gradient-card border-border">
       <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
         {/* Avatar */}
         <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center text-4xl font-bold glow-primary">
-            {user.username.charAt(0)}
+          <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center text-4xl font-bold glow-primary overflow-hidden">
+            <Avataaars
+              style={{ width: '100%', height: '100%' }}
+              {...avatarProps}
+            />
           </div>
           <div className="absolute -bottom-2 -right-2 level-badge">
             Lvl {user.level}
