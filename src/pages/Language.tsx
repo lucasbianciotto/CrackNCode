@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LevelCard } from "@/components/language/LevelCard";
@@ -9,11 +9,20 @@ import { Level } from "@/types";
 import { ArrowLeft, Trophy, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { LoginPrompt } from "@/components/auth/LoginPrompt";
 
 const Language = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
+
+  const { user } = useAuth();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  useEffect(() => {
+    if (!user) setShowLoginPrompt(true);
+  }, [user]);
 
   const language = languages.find((lang) => lang.id === id);
   const languageLevels = levels[id || ""] || [];
@@ -36,12 +45,20 @@ const Language = () => {
   }
 
   const handleLevelClick = (level: Level) => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     if (!level.isLocked) {
       navigate(`/language/${id}/level/${level.id}`)
     }
   };
 
   const handlePlay = () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     toast.info("Mini-jeu à implémenter", {
       description: `Le niveau "${selectedLevel?.title}" sera disponible prochainement !`,
     });
@@ -149,6 +166,7 @@ const Language = () => {
         onClose={() => setSelectedLevel(null)}
         onPlay={handlePlay}
       />
+      <LoginPrompt open={showLoginPrompt} onOpenChange={setShowLoginPrompt} />
     </AppLayout>
   );
 };

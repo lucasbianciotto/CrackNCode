@@ -2,12 +2,18 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguageCard } from "@/components/language/LanguageCard";
-import { mockUser } from "@/data/mockUser";
 import { languages } from "@/data/languages";
 import { Code2, Sparkles } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { LoginPrompt } from "@/components/auth/LoginPrompt";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, loginWithGoogle } = useAuth();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   return (
     <AppLayout>
@@ -34,7 +40,19 @@ const Home = () => {
         </div>
         
         {/* User Profile */}
-        <ProfileHeader user={mockUser} />
+        {user ? (
+          <ProfileHeader user={user} />
+        ) : (
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Bienvenue sur Devlingo</h2>
+                <p className="text-sm text-muted-foreground">Connectez-vous pour suivre votre progression et débloquer les niveaux.</p>
+              </div>
+              <Button onClick={loginWithGoogle}>Se connecter</Button>
+            </div>
+          </Card>
+        )}
         
         {/* Languages Section */}
         <div>
@@ -50,12 +68,19 @@ const Home = () => {
               <LanguageCard
                 key={language.id}
                 language={language}
-                onClick={() => navigate(`/language/${language.id}`)}
+                onClick={() => {
+                  if (!user) {
+                    setShowLoginPrompt(true);
+                    return;
+                  }
+                  navigate(`/language/${language.id}`);
+                }}
               />
             ))}
           </div>
         </div>
       </div>
+      <LoginPrompt open={showLoginPrompt} onOpenChange={setShowLoginPrompt} />
     </AppLayout>
   );
 };
