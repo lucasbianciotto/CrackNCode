@@ -1,3 +1,14 @@
+// Profil utilisateur principal
+export interface UserProfile {
+  id: string;
+  username: string;
+  level: number;
+  currentXP: number;
+  xpToNextLevel: number;
+  totalXP: number;
+  completedChallenges: number;
+  achievements: string[];
+}
 export type LevelDifficulty = "beginner" | "intermediate" | "advanced" | "expert";
 
 export interface QuizQuestionOption {
