@@ -7,6 +7,7 @@ import { AvatarCustomizer, AvatarOptions } from "@/components/profile/AvatarCust
 import { Dialog, DialogTrigger, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { PirateAnchor } from "@/components/ui/pirate/PirateAnchor";
 
 const Profile = () => {
   const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
@@ -16,6 +17,10 @@ const Profile = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Accent pirate en haut du profil */}
+        <div className="flex justify-end pr-2 pt-2">
+          <PirateAnchor size={32} />
+        </div>
         {user ? (
           <>
             <ProfileHeader user={{ ...user, avatarOptions }} onEditAvatar={() => setOpen(true)} />
@@ -40,27 +45,23 @@ const Profile = () => {
             </div>
           </Card>
         )}
-        
         {/* Achievements Section */}
         <Card className="p-6 bg-card border-border">
           <div className="flex items-center gap-2 mb-4">
             <Award className="w-5 h-5 text-secondary" />
             <h2 className="text-xl font-bold text-foreground">Succès débloqués</h2>
           </div>
-          
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="p-4 rounded-lg bg-muted border border-border">
               <div className="text-3xl mb-2">🏆</div>
               <h3 className="font-bold text-foreground mb-1">First Blood</h3>
               <p className="text-sm text-muted-foreground">Premier défi complété</p>
             </div>
-            
             <div className="p-4 rounded-lg bg-muted border border-border">
               <div className="text-3xl mb-2">⚡</div>
               <h3 className="font-bold text-foreground mb-1">Speed Demon</h3>
               <p className="text-sm text-muted-foreground">Défi complété en moins de 5 min</p>
             </div>
-            
             <div className="p-4 rounded-lg bg-muted border border-border">
               <div className="text-3xl mb-2">✨</div>
               <h3 className="font-bold text-foreground mb-1">Perfectionist</h3>
@@ -68,14 +69,12 @@ const Profile = () => {
             </div>
           </div>
         </Card>
-        
         {/* Activity Section */}
         <Card className="p-6 bg-card border-border">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-accent" />
             <h2 className="text-xl font-bold text-foreground">Activité récente</h2>
           </div>
-          
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
               <Calendar className="w-5 h-5 text-muted-foreground" />
@@ -85,7 +84,6 @@ const Profile = () => {
               </div>
               <span className="text-accent font-bold">+300 XP</span>
             </div>
-            
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
               <Calendar className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">

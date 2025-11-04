@@ -50,7 +50,7 @@ export const ProfileHeader = ({ user, onEditAvatar }: ProfileHeaderProps) => {
               <button
                 type="button"
                 onClick={onEditAvatar}
-                className="ml-1 p-1 rounded-full hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
+                className="ml-1 p-1 rounded-full transition-all duration-200 hover:bg-accent/30 hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 title="Modifier mon avatar"
               >
                 <Pencil className="w-5 h-5 text-muted-foreground" />
