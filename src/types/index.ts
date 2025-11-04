@@ -1,7 +1,5 @@
-// Difficulté
 export type LevelDifficulty = "beginner" | "intermediate" | "advanced" | "expert";
 
-// ----- QUIZ -----
 export interface QuizQuestionOption {
   id: string;       // ex: "a", "b", "c", "d"
   text: string;     // libellé affiché
@@ -63,4 +61,16 @@ export interface Level {
 
   // Mini‑jeu associé (quiz, code-fill, …)
   minigame?: Minigame;
+}
+
+export interface Language {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string;
+  currentLevel: number;
+  completedLevels: number;
+  totalXP: number;
+  earnedXP: number;
 }

@@ -1,11 +1,14 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, User, Trophy, Code2 } from "lucide-react";
+import { Home, User, Trophy, Code2, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/context/AuthContext";
 
 export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
@@ -22,9 +25,23 @@ export const Header = () => {
             <Code2 className="w-6 h-6 text-primary animate-pulse-glow" />
             <span className="gradient-text">Devlingo</span>
           </button>
-          
+
           {/* Navigation */}
           <nav className="flex items-center gap-2">
+            {/* Theme Switcher to the left of Accueil */}
+            <div className="flex items-center gap-1">
+              <Switch
+                checked={theme === "light"}
+                onCheckedChange={toggleTheme}
+                aria-label="Toggle theme"
+                className="relative"
+              />
+              {theme === "light" ? (
+                <Sun className="w-4 h-4 text-yellow-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-blue-400" />
+              )}
+            </div>
             <Button
               variant={isActive("/") ? "default" : "ghost"}
               size="sm"

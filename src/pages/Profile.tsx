@@ -2,10 +2,16 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { Card } from "@/components/ui/card";
 import { Award, TrendingUp, Calendar } from "lucide-react";
+import { useState } from "react";
+import { AvatarCustomizer, AvatarOptions } from "@/components/profile/AvatarCustomizer";
+import { Dialog, DialogTrigger, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 const Profile = () => {
+  const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
+  const [open, setOpen] = useState(false);
+
   const { user } = useAuth();
   return (
     <AppLayout>
