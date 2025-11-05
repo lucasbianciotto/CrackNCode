@@ -38,6 +38,7 @@ model position {
   language        language @relation(fields: [id_level], references: [id], onDelete: Cascade, map: "position_ibfk_1")
   user            user     @relation(fields: [id_user], references: [id_google], onDelete: Cascade, map: "position_ibfk_2")
 
+  @@unique([id_user, id_level])
   @@index([id_level], map: "id_level")
   @@index([id_user], map: "id_user")
 }
@@ -51,6 +52,19 @@ model succes {
   @@index([id_user], map: "id_user")
 }
 
+model activity {
+  id          Int      @id @default(autoincrement())
+  id_user     String
+  language_id String
+  level_title String   @db.VarChar(255)
+  xp_earned   Int
+  created_at  DateTime @default(now())
+  user        user     @relation(fields: [id_user], references: [id_google], onDelete: Cascade)
+
+  @@index([id_user], map: "activity_id_user_idx")
+  @@index([created_at], map: "activity_created_at_idx")
+}
+
 model user {
   id_google       String           @id
   nom             String
@@ -59,4 +73,5 @@ model user {
   personalisation personalisation?
   position        position[]
   succes          succes[]
+  activity        activity[]
 }

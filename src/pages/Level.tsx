@@ -94,6 +94,10 @@ const Level = () => {
                                     // @ts-expect-error: typage simplifié pour intégration rapide
                                     game={minigame}
                                     onExit={() => navigate(`/language/${id}`)}
+                                    languageId={id}
+                                    levelNumber={level.levelNumber}
+                                    xpReward={level.xpReward}
+                                    levelTitle={level.title}
                                 />
                             ) : (
                                 <div className="text-sm text-muted-foreground">

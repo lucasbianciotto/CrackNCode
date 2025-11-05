@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 type HtmlGoal = {
   id: string;
@@ -19,7 +22,21 @@ type HtmlBuilderGame = {
   goals: HtmlGoal[];
 };
 
-export function HtmlBuilderRunner({ game, onExit }: { game: HtmlBuilderGame; onExit?: () => void }) {
+export function HtmlBuilderRunner({ 
+  game, 
+  onExit,
+  languageId,
+  levelNumber,
+  xpReward,
+  levelTitle,
+}: { 
+  game: HtmlBuilderGame; 
+  onExit?: () => void;
+  languageId?: string;
+  levelNumber?: number;
+  xpReward?: number;
+  levelTitle?: string;
+}) {
   const [code, setCode] = useState<string>(game.starter);
 
   const goalChecks = useMemo(() => {
@@ -68,6 +85,49 @@ export function HtmlBuilderRunner({ game, onExit }: { game: HtmlBuilderGame; onE
         setCode(code.replace("</body>", "    <a href=\"https://example.com\">Un lien</a>\n  </body>"));
         return;
       }
+    }
+  };
+
+  const handleCompleteLevel = async () => {
+    if (!allOk || !languageId || !levelNumber) {
+      toast.error("Impossible de valider le niveau");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/languages/${languageId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          levelNumber,
+          xpReward: xpReward || 0,
+          levelTitle: levelTitle || `${languageId?.charAt(0).toUpperCase() + languageId?.slice(1)} - Niveau ${levelNumber}`,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`Niveau complété ! +${xpReward || 0} XP`);
+        
+        // Affiche les nouveaux succès débloqués
+        if (data.newAchievements && data.newAchievements.length > 0) {
+          setTimeout(() => {
+            data.newAchievements.forEach((achievement: string) => {
+              toast.success(`🎉 Nouveau succès débloqué ! ${achievement}`);
+            });
+          }, 500);
+        }
+        
+        if (onExit) {
+          setTimeout(() => onExit(), 1500);
+        }
+      } else {
+        toast.error("Erreur lors de la validation du niveau");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la complétion du niveau:", err);
+      toast.error("Erreur lors de la validation du niveau");
     }
   };
 
@@ -144,13 +204,13 @@ export function HtmlBuilderRunner({ game, onExit }: { game: HtmlBuilderGame; onE
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
-          <div className="flex justify-between items-center p-3 border-t border-border">
-            <div className="text-sm text-muted-foreground">{allOk ? "Tous les objectifs sont validés ✅" : "Complète les objectifs pour valider"}</div>
-            <div className="flex gap-2">
-              {onExit && <Button variant="ghost" onClick={onExit}>Quitter</Button>}
-              <Button disabled={!allOk} onClick={onExit}>Valider le niveau</Button>
+            <div className="flex justify-between items-center p-3 border-t border-border">
+              <div className="text-sm text-muted-foreground">{allOk ? "Tous les objectifs sont validés ✅" : "Complète les objectifs pour valider"}</div>
+              <div className="flex gap-2">
+                {onExit && <Button variant="ghost" onClick={onExit}>Quitter</Button>}
+                <Button disabled={!allOk} onClick={handleCompleteLevel}>Valider le niveau</Button>
+              </div>
             </div>
-          </div>
         </Card>
       </div>
 

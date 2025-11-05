@@ -8,15 +8,35 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { PirateAnchor } from "@/components/ui/pirate/PirateAnchor";
 import { Avataaars } from "@/components/ui/Avataaars";
+import { toast } from "sonner";
 
 const Profile = () => {
   const [avatarOptions, setAvatarOptions] = useState<AvatarOptions | null>(null);
   const [open, setOpen] = useState(false);
   const [tempAvatarOptions, setTempAvatarOptions] = useState<AvatarOptions | null>(null);
+  const [activities, setActivities] = useState<Array<{
+    id: number;
+    language_id: string;
+    level_title: string;
+    xp_earned: number;
+    created_at: string;
+  }>>([]);
 
   const { user } = useAuth();
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
+  // Fonction pour formater le temps écoulé
+  const getTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return "à l'instant";
+    if (diffInSeconds < 3600) return `il y a ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `il y a ${Math.floor(diffInSeconds / 3600)} h`;
+    if (diffInSeconds < 604800) return `il y a ${Math.floor(diffInSeconds / 86400)} jour${Math.floor(diffInSeconds / 86400) > 1 ? 's' : ''}`;
+    return `il y a ${Math.floor(diffInSeconds / 604800)} semaine${Math.floor(diffInSeconds / 604800) > 1 ? 's' : ''}`;
+  };
 
   const handleOpenDialog = () => {
     setTempAvatarOptions(avatarOptions);
@@ -51,6 +71,22 @@ const Profile = () => {
         setAvatarOptions(mapped);
       } catch (err) {
         // Ignorer silencieusement en mode dev
+      }
+    })();
+  }, [user]);
+
+  // Charger les activités récentes
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/activities`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setActivities(data.activities || []);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des activités:", err);
       }
     })();
   }, [user]);
@@ -210,23 +246,21 @@ const Profile = () => {
             <Award className="w-6 h-6 text-secondary" />
             <h2 className="text-2xl font-bold text-foreground">Succès débloqués</h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="p-5 rounded-lg bg-muted border border-border hover:border-primary transition-colors">
-              <div className="text-4xl mb-3">🏆</div>
-              <h3 className="font-bold text-foreground mb-2">First Blood</h3>
-              <p className="text-sm text-muted-foreground">Premier défi complété</p>
+          {user.achievements && user.achievements.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {user.achievements.map((achievement, index) => (
+                <div key={index} className="p-5 rounded-lg bg-muted border border-border hover:border-primary transition-colors">
+                  <div className="text-4xl mb-3">{achievement || "🏆"}</div>
+                  <h3 className="font-bold text-foreground mb-2">Succès débloqué</h3>
+                  <p className="text-sm text-muted-foreground">Félicitations pour cet accomplissement !</p>
+                </div>
+              ))}
             </div>
-            <div className="p-5 rounded-lg bg-muted border border-border hover:border-primary transition-colors">
-              <div className="text-4xl mb-3">⚡</div>
-              <h3 className="font-bold text-foreground mb-2">Speed Demon</h3>
-              <p className="text-sm text-muted-foreground">Défi complété en moins de 5 min</p>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Aucun succès débloqué pour le moment. Complétez des défis pour débloquer des succès !</p>
             </div>
-            <div className="p-5 rounded-lg bg-muted border border-border hover:border-primary transition-colors">
-              <div className="text-4xl mb-3">✨</div>
-              <h3 className="font-bold text-foreground mb-2">Perfectionist</h3>
-              <p className="text-sm text-muted-foreground">Score parfait sur un défi</p>
-            </div>
-          </div>
+          )}
         </Card>
 
         {/* Activity Section */}
@@ -236,32 +270,30 @@ const Profile = () => {
             <h2 className="text-2xl font-bold text-foreground">Activité récente</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-              <div className="p-2 rounded-full bg-primary/20">
-                <Calendar className="w-5 h-5 text-primary" />
+            {activities.length > 0 ? (
+              activities.map((activity) => {
+                const timeAgo = getTimeAgo(new Date(activity.created_at));
+                return (
+                  <div key={activity.id} className="flex items-center gap-4 p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
+                    <div className="p-2 rounded-full bg-primary/20">
+                      <Calendar className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Code2 className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">{activity.level_title}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Complété {timeAgo}</p>
+                    </div>
+                    <span className="text-accent font-bold text-lg">+{activity.xp_earned} XP</span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Aucune activité récente. Complétez des défis pour voir votre historique ici !</p>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Code2 className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">Python - Dictionnaires</p>
-                </div>
-                <p className="text-xs text-muted-foreground">Complété il y a 2 heures</p>
-              </div>
-              <span className="text-accent font-bold text-lg">+300 XP</span>
-            </div>
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-              <div className="p-2 rounded-full bg-primary/20">
-                <Calendar className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Code2 className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">JavaScript - DOM Manipulation</p>
-                </div>
-                <p className="text-xs text-muted-foreground">Complété il y a 1 jour</p>
-              </div>
-              <span className="text-accent font-bold text-lg">+200 XP</span>
-            </div>
+            )}
           </div>
         </Card>
 

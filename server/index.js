@@ -173,7 +173,7 @@ app.get("/api/me", async (req, res) => {
         // Récupère xp_global depuis la base via Prisma en se basant sur l'id Google
         const dbUser = await prisma.user.findUnique({
             where: { id_google: req.user.googleId },
-            select: { xp_global: true },
+            select: { xp_global: true, nom: true, prenom: true },
         });
 
         // Récupère la personnalisation en base et la mappe vers les options d'avatar du front
@@ -185,12 +185,42 @@ app.get("/api/me", async (req, res) => {
             avatarOptions = toAvatarOptionsFromDb(DEFAULT_PERSONALISATION_DB);
         }
 
-        const userWithXp = { ...req.user, xp_global: dbUser?.xp_global ?? 0, avatarOptions };
+        // Calcule le nombre de défis complétés depuis la table position
+        const positions = await prisma.position.findMany({
+            where: { id_user: req.user.googleId },
+        });
+        const completedChallenges = positions.reduce((sum, pos) => sum + pos.completed_level, 0);
+
+        // Récupère les succès de l'utilisateur
+        const achievements = await prisma.succes.findMany({
+            where: { id_user: req.user.googleId },
+            select: { image: true },
+        });
+        const achievementImages = achievements.map(a => a.image);
+
+        const xpGlobal = dbUser?.xp_global ?? 0;
+        const LEVEL_SIZE = 1000;
+        const level = Math.floor(xpGlobal / LEVEL_SIZE) + 1;
+        const currentXP = xpGlobal % LEVEL_SIZE;
+        const xpToNextLevel = LEVEL_SIZE;
+
+        const userWithXp = { 
+            ...req.user, 
+            username: dbUser ? `${dbUser.prenom} ${dbUser.nom}` : req.user.username,
+            xp_global: xpGlobal,
+            level,
+            currentXP,
+            xpToNextLevel,
+            totalXP: xpGlobal,
+            completedChallenges,
+            achievements: achievementImages,
+            avatarOptions 
+        };
         return res.json({ authenticated: true, user: userWithXp });
     } catch (err) {
         console.error("/api/me prisma error:", err);
         // En cas d'erreur DB, renvoyer quand même l'utilisateur en mémoire, xp_global=0 par défaut
-        return res.json({ authenticated: true, user: { ...req.user, xp_global: 0, avatarOptions: toAvatarOptionsFromDb(DEFAULT_PERSONALISATION_DB) } });
+        return res.json({ authenticated: true, user: { ...req.user, xp_global: 0, completedChallenges: 0, achievements: [], avatarOptions: toAvatarOptionsFromDb(DEFAULT_PERSONALISATION_DB) } });
     }
 });
 
@@ -205,6 +235,351 @@ app.put("/api/user", (req, res) => {
 	}
 	return res.status(400).json({ error: "Nom d'utilisateur invalide" });
 });
+
+// API pour récupérer les langages avec progression
+app.get("/api/languages", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	try {
+		const positions = await prisma.position.findMany({
+			where: { id_user: req.user.googleId },
+		});
+		
+		// Récupère tous les langages disponibles
+		const languages = await prisma.language.findMany();
+		
+		// Crée un map pour accéder rapidement aux positions
+		const positionMap = new Map();
+		positions.forEach(pos => {
+			positionMap.set(pos.id_level, pos);
+		});
+		
+		// Construit la réponse avec les données de progression
+		const languagesWithProgress = languages.map(lang => {
+			const pos = positionMap.get(lang.id);
+			const completedLevel = pos?.completed_level || 0;
+			const currentLevel = completedLevel + 1;
+			
+			return {
+				id: lang.id,
+				currentLevel,
+				completedLevels: completedLevel,
+				// Ces valeurs seront calculées côté frontend si nécessaire
+				totalXP: 0,
+				earnedXP: 0,
+			};
+		});
+		
+		return res.json({ languages: languagesWithProgress });
+	} catch (err) {
+		console.error("GET /api/languages error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API pour récupérer les niveaux d'un langage avec leur statut
+app.get("/api/languages/:languageId/levels", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	try {
+		const { languageId } = req.params;
+		
+		// Récupère la position de l'utilisateur pour ce langage
+		const position = await prisma.position.findUnique({
+			where: {
+				id_user_id_level: {
+					id_user: req.user.googleId,
+					id_level: languageId,
+				},
+			},
+		});
+		
+		const completedLevel = position?.completed_level || 0;
+		
+		// Retourne le dernier niveau complété
+		return res.json({
+			completedLevel,
+			currentLevel: completedLevel + 1,
+		});
+	} catch (err) {
+		console.error("GET /api/languages/:languageId/levels error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API pour compléter un niveau et mettre à jour la progression
+app.post("/api/languages/:languageId/complete", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	try {
+		const { languageId } = req.params;
+		const { levelNumber, xpReward } = req.body || {};
+		
+		if (typeof levelNumber !== "number" || levelNumber < 1) {
+			return res.status(400).json({ error: "levelNumber invalide" });
+		}
+		
+		// Récupère la position existante pour vérifier le niveau actuel
+		const existingPosition = await prisma.position.findUnique({
+			where: {
+				id_user_id_level: {
+					id_user: req.user.googleId,
+					id_level: languageId,
+				},
+			},
+		});
+		
+		const newCompletedLevel = existingPosition 
+			? Math.max(levelNumber, existingPosition.completed_level)
+			: levelNumber;
+		
+		// Utilise upsert pour créer ou mettre à jour la position
+		const position = await prisma.position.upsert({
+			where: {
+				id_user_id_level: {
+					id_user: req.user.googleId,
+					id_level: languageId,
+				},
+			},
+			create: {
+				id_user: req.user.googleId,
+				id_level: languageId,
+				completed_level: levelNumber,
+			},
+			update: {
+				completed_level: newCompletedLevel,
+			},
+		});
+		
+		// Met à jour l'XP global de l'utilisateur
+		if (typeof xpReward === "number" && xpReward > 0) {
+			await prisma.user.update({
+				where: { id_google: req.user.googleId },
+				data: {
+					xp_global: {
+						increment: xpReward,
+					},
+				},
+			});
+		}
+		
+		// Récupère le titre du niveau pour l'activité
+		const levelTitle = req.body.levelTitle || `${languageId.charAt(0).toUpperCase() + languageId.slice(1)} - Niveau ${levelNumber}`;
+		
+		// Enregistre l'activité
+		try {
+			await prisma.activity.create({
+				data: {
+					id_user: req.user.googleId,
+					language_id: languageId,
+					level_title: levelTitle,
+					xp_earned: xpReward || 0,
+				},
+			});
+		} catch (err) {
+			console.error("Erreur lors de l'enregistrement de l'activité:", err);
+		}
+		
+		// Vérifie et attribue les succès automatiquement
+		const newAchievements = await checkAndAwardAchievements(req.user.googleId, {
+			languageId,
+			levelNumber,
+		});
+		
+		return res.json({ 
+			success: true,
+			position: {
+				completedLevel: position.completed_level,
+				currentLevel: position.completed_level + 1,
+			},
+			newAchievements,
+		});
+	} catch (err) {
+		console.error("POST /api/languages/:languageId/complete error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API pour récupérer le leaderboard
+app.get("/api/leaderboard", async (req, res) => {
+	try {
+		const topUsers = await prisma.user.findMany({
+			orderBy: { xp_global: "desc" },
+			take: 10,
+			select: {
+				id_google: true,
+				nom: true,
+				prenom: true,
+				xp_global: true,
+			},
+		});
+		
+		const LEVEL_SIZE = 1000;
+		const leaderboard = topUsers.map((user, index) => {
+			const level = Math.floor(user.xp_global / LEVEL_SIZE) + 1;
+			return {
+				rank: index + 1,
+				id: user.id_google,
+				username: `${user.prenom} ${user.nom}`,
+				level,
+				xp: user.xp_global,
+			};
+		});
+		
+		return res.json({ leaderboard });
+	} catch (err) {
+		console.error("GET /api/leaderboard error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API pour récupérer les succès d'un utilisateur
+app.get("/api/achievements", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	try {
+		const achievements = await prisma.succes.findMany({
+			where: { id_user: req.user.googleId },
+			select: {
+				id: true,
+				image: true,
+			},
+		});
+		
+		return res.json({ achievements });
+	} catch (err) {
+		console.error("GET /api/achievements error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API pour récupérer les activités récentes d'un utilisateur
+app.get("/api/activities", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	try {
+		const activities = await prisma.activity.findMany({
+			where: { id_user: req.user.googleId },
+			orderBy: { created_at: "desc" },
+			take: 10,
+			select: {
+				id: true,
+				language_id: true,
+				level_title: true,
+				xp_earned: true,
+				created_at: true,
+			},
+		});
+		
+		return res.json({ activities });
+	} catch (err) {
+		console.error("GET /api/activities error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// Fonction pour vérifier et attribuer automatiquement des succès
+async function checkAndAwardAchievements(userId, context) {
+	const achievements = [];
+	
+	try {
+		// Récupère les statistiques de l'utilisateur
+		const positions = await prisma.position.findMany({
+			where: { id_user: userId },
+		});
+		const totalCompleted = positions.reduce((sum, pos) => sum + pos.completed_level, 0);
+		
+		const user = await prisma.user.findUnique({
+			where: { id_google: userId },
+			select: { xp_global: true },
+		});
+		
+		const existingAchievements = await prisma.succes.findMany({
+			where: { id_user: userId },
+			select: { image: true },
+		});
+		const existingImages = new Set(existingAchievements.map(a => a.image));
+		
+		// Succès 1: Premier défi complété
+		if (totalCompleted >= 1 && !existingImages.has("🏆")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "🏆",
+				},
+			});
+			achievements.push("🏆");
+		}
+		
+		// Succès 2: 10 défis complétés
+		if (totalCompleted >= 10 && !existingImages.has("⭐")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "⭐",
+				},
+			});
+			achievements.push("⭐");
+		}
+		
+		// Succès 3: 25 défis complétés
+		if (totalCompleted >= 25 && !existingImages.has("💎")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "💎",
+				},
+			});
+			achievements.push("💎");
+		}
+		
+		// Succès 4: 1000 XP atteints
+		if (user?.xp_global >= 1000 && !existingImages.has("⚡")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "⚡",
+				},
+			});
+			achievements.push("⚡");
+		}
+		
+		// Succès 5: 5000 XP atteints
+		if (user?.xp_global >= 5000 && !existingImages.has("🔥")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "🔥",
+				},
+			});
+			achievements.push("🔥");
+		}
+		
+		// Succès 6: Premier niveau HTML complété
+		if (context?.languageId === "html" && context?.levelNumber === 1 && !existingImages.has("🧱")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "🧱",
+				},
+			});
+			achievements.push("🧱");
+		}
+		
+		// Succès 7: Tous les langages démarrés (au moins 1 niveau dans chaque langage)
+		const languages = await prisma.language.findMany();
+		const startedLanguages = positions.filter(p => p.completed_level > 0).length;
+		if (startedLanguages >= languages.length && !existingImages.has("🌍")) {
+			await prisma.succes.create({
+				data: {
+					id_user: userId,
+					image: "🌍",
+				},
+			});
+			achievements.push("🌍");
+		}
+		
+	} catch (err) {
+		console.error("Erreur lors de la vérification des succès:", err);
+	}
+	
+	return achievements;
+}
 
 // Utilitaires de mapping entre DB et options d'avatar (front)
 function toAvatarOptionsFromDb(db) {

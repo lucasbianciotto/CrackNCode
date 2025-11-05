@@ -2,15 +2,39 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Trophy, Medal } from "lucide-react";
 import { PirateDivider } from "@/components/ui/pirate/PirateDivider";
+import { useEffect, useState } from "react";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const Leaderboard = () => {
-  const topPlayers = [
-    { rank: 1, username: "CodeMaster99", level: 28, xp: 54320, avatar: "🔥" },
-    { rank: 2, username: "PyThonPro", level: 25, xp: 48900, avatar: "⚡" },
-    { rank: 3, username: "JSNinja", level: 23, xp: 42150, avatar: "🥷" },
-    { rank: 4, username: "DevMaster", level: 12, xp: 24750, avatar: "💻" },
-    { rank: 5, username: "BugHunter", level: 18, xp: 31200, avatar: "🐛" },
-  ];
+  const [topPlayers, setTopPlayers] = useState<Array<{
+    rank: number;
+    username: string;
+    level: number;
+    xp: number;
+    avatar?: string;
+  }>>([]);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/leaderboard`);
+        if (res.ok) {
+          const data = await res.json();
+          // Ajoute des avatars par défaut basés sur le rang
+          const players = data.leaderboard.map((player: any, index: number) => ({
+            ...player,
+            avatar: index === 0 ? "🔥" : index === 1 ? "⚡" : index === 2 ? "🥷" : "💻",
+          }));
+          setTopPlayers(players);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement du leaderboard:", err);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
   
   return (
     <AppLayout>

@@ -3,19 +3,24 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LevelCard } from "@/components/language/LevelCard";
 import { LevelModal } from "@/components/language/LevelModal";
-import {getLanguageLevelsCount, languages} from "@/data/languages";
-import { levels } from "@/data/levels";
-import { Level } from "@/types";
+import {getLanguageLevelsCount, languages as staticLanguages} from "@/data/languages";
+import { levels as staticLevels } from "@/data/levels";
+import { Level, Language } from "@/types";
 import { ArrowLeft, Trophy, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { LoginPrompt } from "@/components/auth/LoginPrompt";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
 const Language = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
+  const [language, setLanguage] = useState<Language | undefined>(staticLanguages.find((lang) => lang.id === id));
+  const [languageLevels, setLanguageLevels] = useState<Level[]>(staticLevels[id || ""] || []);
+  const [completedLevel, setCompletedLevel] = useState<number>(0);
 
   const { user } = useAuth();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -24,8 +29,46 @@ const Language = () => {
     if (!user) setShowLoginPrompt(true);
   }, [user]);
 
-  const language = languages.find((lang) => lang.id === id);
-  const languageLevels = levels[id || ""] || [];
+  // Charge la progression depuis l'API
+  useEffect(() => {
+    if (!user || !id) return;
+
+    const fetchProgress = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/languages/${id}/levels`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const completed = data.completedLevel || 0;
+          setCompletedLevel(completed);
+
+          // Met à jour le langage avec la progression
+          const staticLang = staticLanguages.find((lang) => lang.id === id);
+          if (staticLang) {
+            setLanguage({
+              ...staticLang,
+              completedLevels: completed,
+              currentLevel: data.currentLevel || completed + 1,
+            });
+          }
+
+          // Met à jour les niveaux avec leur statut
+          const staticLevelsForLang = staticLevels[id] || [];
+          const updatedLevels = staticLevelsForLang.map((level) => ({
+            ...level,
+            isCompleted: level.levelNumber <= completed,
+            isLocked: level.levelNumber > completed + 1,
+          }));
+          setLanguageLevels(updatedLevels);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement de la progression:", err);
+      }
+    };
+
+    fetchProgress();
+  }, [user, id]);
 
   const total = language ? getLanguageLevelsCount(language.id) : 0;
   const raw = language && total ? (language.completedLevels / total) * 100 : 0;

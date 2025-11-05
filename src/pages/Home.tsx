@@ -2,18 +2,65 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguageCard } from "@/components/language/LanguageCard";
-import { languages } from "@/data/languages";
+import { languages as staticLanguages } from "@/data/languages";
 import { Code2, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LoginPrompt } from "@/components/auth/LoginPrompt";
+import type { Language } from "@/types";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const Home = () => {
   const navigate = useNavigate();
   const { user, loginWithGoogle } = useAuth();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [languages, setLanguages] = useState<Language[]>(staticLanguages);
+
+  // Charge les langages avec progression depuis l'API si l'utilisateur est connecté
+  useEffect(() => {
+    if (!user) {
+      // Si pas connecté, utilise les données statiques
+      setLanguages(staticLanguages);
+      return;
+    }
+
+    const fetchLanguages = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/languages`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const apiLanguages = data.languages || [];
+          
+          // Fusionne les données de l'API avec les données statiques (nom, description, icon, color)
+          const mergedLanguages = staticLanguages.map(staticLang => {
+            const apiLang = apiLanguages.find((l: any) => l.id === staticLang.id);
+            if (apiLang) {
+              return {
+                ...staticLang,
+                currentLevel: apiLang.currentLevel || staticLang.currentLevel,
+                completedLevels: apiLang.completedLevels || staticLang.completedLevels,
+                earnedXP: apiLang.earnedXP || staticLang.earnedXP,
+              };
+            }
+            return staticLang;
+          });
+          
+          setLanguages(mergedLanguages);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des langages:", err);
+        // En cas d'erreur, utilise les données statiques
+        setLanguages(staticLanguages);
+      }
+    };
+
+    fetchLanguages();
+  }, [user]);
 
   return (
     <AppLayout>
