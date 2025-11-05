@@ -2,6 +2,7 @@ import { Language } from "@/types";
 import { Card } from "@/components/ui/card";
 import { ChevronRight, Trophy } from "lucide-react";
 import {getLanguageLevelsCount} from "@/data/languages.ts";
+import { PirateTreasureMark } from "@/components/ui/pirate/PirateTreasureMark";
 
 interface LanguageCardProps {
   language: Language;
@@ -27,18 +28,17 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
           >
             {language.icon}
           </div>
-          
           <div className="flex-1 min-w-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-foreground">{language.name}</h3>
+              <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-foreground">{language.name}</h3>
+                </div>
               <ChevronRight className="text-muted-foreground shrink-0 transition-transform group-hover:translate-x-1" />
             </div>
-            
             <p className="text-sm text-muted-foreground mb-4">
               {language.description}
             </p>
-            
             {/* Stats */}
             <div className="flex items-center gap-4 mb-3 text-sm">
               <div className="flex items-center gap-1">
@@ -51,7 +51,6 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
                 {language.completedLevels}/{getLanguageLevelsCount(language.id)} niveaux
               </div>
             </div>
-            
             {/* Progress Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">

@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Trophy, Medal } from "lucide-react";
+import { PirateDivider } from "@/components/ui/pirate/PirateDivider";
 
 const Leaderboard = () => {
   const topPlayers = [
@@ -22,7 +23,10 @@ const Leaderboard = () => {
           <h1 className="text-3xl font-bold text-foreground">Classement</h1>
           <p className="text-muted-foreground">Les meilleurs développeurs du Game of Code</p>
         </div>
-        
+        {/* PirateDivider sous le header */}
+        <div className="px-8 pb-2">
+          <PirateDivider />
+        </div>
         {/* Leaderboard */}
         <Card className="p-6 bg-card border-border">
           <div className="space-y-3">
@@ -52,12 +56,10 @@ const Leaderboard = () => {
                     </span>
                   )}
                 </div>
-                
                 {/* Avatar */}
                 <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-2xl shrink-0">
                   {player.avatar}
                 </div>
-                
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-foreground truncate">
@@ -67,7 +69,6 @@ const Leaderboard = () => {
                     Niveau {player.level}
                   </p>
                 </div>
-                
                 {/* XP */}
                 <div className="text-right shrink-0">
                   <p className="font-bold text-foreground">

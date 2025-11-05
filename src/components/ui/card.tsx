@@ -1,10 +1,27 @@
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
+import { PirateDivider } from "@/components/ui/pirate/PirateDivider";
+import { PirateFlag } from "@/components/ui/pirate/PirateFlag";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)} {...props} />
-));
+
+const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "rounded-2xl border border-accent/30 bg-card/90 shadow-md backdrop-blur-sm overflow-hidden relative",
+          className
+        )}
+        {...props}
+      >
+        <div className="relative z-10 p-6">
+          {children}
+        </div>
+      </div>
+    );
+  }
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
