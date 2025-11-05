@@ -119,7 +119,7 @@ const Profile = () => {
               {/* XP Bar */}
               <div className="w-full space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Niveau {user.level + 1}</span>
+                  <span className="text-muted-foreground">Niveau {user.level}</span>
                   <span className="font-bold text-foreground">
                     {user.currentXP} / {user.xpToNextLevel} XP
                   </span>

@@ -3,50 +3,53 @@
    ========================= */
 
 /* --------- Variables --------- */
-:root {
-    --nf-bg: #f7f7f5;
+/* Forcer le thème clair pour la page 404 */
+.not-found-container,
+.not-found-container * {
+    --nf-bg: #f7f7f5 !important;
     /* blanc cassé */
-    --nf-text: #111827;
-    --nf-muted: #6b7280;
-    --nf-danger: #d9534f;
-    --nf-border: #e5e7eb;
-    --nf-radius: 10px;
-    --nf-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    --nf-focus: #60a5fa;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --nf-bg: #0b1220;
-        --nf-text: #e5e7eb;
-        --nf-muted: #9ca3af;
-        --nf-border: #1f2937;
-        --nf-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        --nf-focus: #93c5fd;
-    }
+    --nf-text: #111827 !important;
+    --nf-muted: #6b7280 !important;
+    --nf-danger: #d9534f !important;
+    --nf-border: #e5e7eb !important;
+    --nf-radius: 10px !important;
+    --nf-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+    --nf-focus: #60a5fa !important;
 }
 
 /* --------- Container général --------- */
 .not-found-container {
     position: relative;
-    min-height: clamp(520px, 80vh, 900px);
-    padding: 32px 16px 56px;
+    min-height: 100vh;
+    min-height: clamp(520px, 100vh, 900px);
+    padding: 32px 16px 80px;
     /* ↓ espace bas pour le bandeau */
-    background: var(--nf-bg);
-    color: var(--nf-text);
+    background: var(--nf-bg) !important;
+    color: var(--nf-text) !important;
+    /* Isolation pour éviter l'héritage du thème */
+    color-scheme: light !important;
 
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    gap: 16px;
 }
 
 /* --------- Topbar (bouton bug) --------- */
 .not-found-topbar {
     position: absolute;
-    top: 38px;
-    /* ↓ un peu plus bas */
-    right: 48px;
-    /* ← décalé vers l’intérieur */
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+}
+
+@media (min-width: 640px) {
+    .not-found-topbar {
+        top: 24px;
+        right: 24px;
+    }
 }
 
 .top-link-bug {
@@ -54,10 +57,10 @@
     text-decoration: none;
     padding: 10px 18px;
     border-radius: 8px;
-    color: #fff;
-    background: var(--nf-danger);
-    border: 1px solid var(--nf-danger);
-    box-shadow: var(--nf-shadow);
+    color: #fff !important;
+    background: var(--nf-danger) !important;
+    border: 1px solid var(--nf-danger) !important;
+    box-shadow: var(--nf-shadow) !important;
     font-weight: 700;
     transition: transform .12s ease, opacity .15s ease, box-shadow .15s ease;
 }
@@ -81,12 +84,13 @@
 .not-found-title {
     font-size: clamp(42px, 7vw, 86px);
     /* ↓ plus petit */
-    line-height: 1;
-    margin: 0 0 10px 0;
+    line-height: 1.1;
+    margin: 0;
     font-weight: 800;
     letter-spacing: -0.04em;
-    color: var(--nf-text);
+    color: var(--nf-text) !important;
     text-decoration: none;
+    display: block;
 }
 
 .not-found-title:focus-visible {
@@ -103,9 +107,10 @@
     height: auto;
     user-select: none;
     -webkit-user-drag: none;
-    margin: 10px auto 14px auto;
+    margin: 0 auto;
     filter: drop-shadow(var(--nf-shadow));
     transform: translateZ(0);
+    display: block;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -129,8 +134,9 @@
 /* --------- Texte descriptif --------- */
 .not-found-text {
     font-size: clamp(16px, 2.5vw, 20px);
-    color: var(--nf-muted);
-    margin: 6px 0 18px 0;
+    color: var(--nf-muted) !important;
+    margin: 0;
+    max-width: 90%;
 }
 
 /* --------- Bouton Retour --------- */
@@ -140,10 +146,12 @@
     border-radius: var(--nf-radius);
     text-decoration: none;
     font-weight: 700;
-    background: var(--nf-text);
-    color: #fff;
-    box-shadow: var(--nf-shadow);
+    background: var(--nf-text) !important;
+    color: #fff !important;
+    box-shadow: var(--nf-shadow) !important;
     transition: transform .12s ease, opacity .2s ease, box-shadow .2s ease;
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 .not-found-link:hover {
@@ -166,17 +174,19 @@
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 12px;
+    bottom: 16px;
     /* bien en bas */
     text-align: center;
     font-size: 0.95rem;
-    color: var(--nf-muted);
-    padding: 0 12px;
+    color: var(--nf-muted) !important;
+    padding: 0 16px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .bottom-mail {
     text-decoration: underline;
-    color: var(--nf-text);
+    color: var(--nf-text) !important;
     font-weight: 600;
 }
 
@@ -187,23 +197,84 @@
 }
 
 /* --------- Responsive --------- */
-@media (max-width: 520px) {
+@media (max-width: 640px) {
+    .not-found-container {
+        padding: 60px 16px 80px;
+        gap: 12px;
+    }
+
     .not-found-topbar {
-        position: static;
-        /* la topbar passe sous le titre en mobile */
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: center;
+        top: 12px;
+        right: 12px;
+    }
+
+    .top-link-bug {
+        font-size: 0.875rem;
+        padding: 8px 14px;
+    }
+
+    .not-found-title {
+        font-size: clamp(36px, 12vw, 64px);
+        margin-top: 8px;
+    }
+
+    .not-found-img {
+        width: min(280px, 75vw);
+        margin: 4px auto;
+    }
+
+    .not-found-text {
+        font-size: clamp(14px, 4vw, 18px);
+        padding: 0 8px;
     }
 
     .not-found-link {
-        width: 100%;
-        max-width: 360px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        width: auto;
+        min-width: 200px;
     }
 
     .not-found-bottom {
-        bottom: 8px;
-        font-size: 0.9rem;
+        bottom: 12px;
+        font-size: 0.875rem;
+        padding: 0 12px;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 380px) {
+    .not-found-container {
+        padding: 50px 12px 70px;
+    }
+
+    .not-found-title {
+        font-size: clamp(32px, 15vw, 56px);
+    }
+
+    .not-found-img {
+        width: min(240px, 80vw);
+    }
+
+    .top-link-bug {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .not-found-link {
+        padding: 10px 16px;
+        font-size: 0.875rem;
+        min-width: 180px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .not-found-container {
+        padding: 40px 24px 100px;
+    }
+
+    .not-found-img {
+        width: min(360px, 50vw);
     }
 }
 
