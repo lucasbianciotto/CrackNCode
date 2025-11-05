@@ -1,16 +1,13 @@
-// import type { UserProfile } from "@/types";
-import { Trophy, Target, Award, Pencil } from "lucide-react";
+import { UserProfile } from "@/types";
+import { Trophy, Target, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avataaars } from "@/components/ui/Avataaars";
 
-import type { UserProfile } from "@/types";
-
 interface ProfileHeaderProps {
   user: UserProfile & { avatarOptions?: any };
-  onEditAvatar?: () => void;
 }
 
-export const ProfileHeader = ({ user, onEditAvatar }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ user }: ProfileHeaderProps) => {
   const xpPercentage = (user.currentXP / user.xpToNextLevel) * 100;
   const avatarProps = user.avatarOptions || {
     avatarStyle: "Circle",
@@ -44,20 +41,10 @@ export const ProfileHeader = ({ user, onEditAvatar }: ProfileHeaderProps) => {
         
         {/* User Info */}
         <div className="flex-1 space-y-4 w-full">
-          <div className="flex items-center gap-2">
+          <div>
             <h1 className="text-3xl font-bold text-foreground">{user.username}</h1>
-            {onEditAvatar && (
-              <button
-                type="button"
-                onClick={onEditAvatar}
-                className="ml-1 p-1 rounded-full hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
-                title="Modifier mon avatar"
-              >
-                <Pencil className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
+            <p className="text-muted-foreground">Développeur en formation</p>
           </div>
-          <p className="text-muted-foreground">Développeur en formation</p>
           
           {/* XP Bar */}
           <div className="space-y-2">
