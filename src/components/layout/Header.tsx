@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, User, Trophy, Code2, Sun, Moon, LogOut, LogIn } from "lucide-react";
+import { Home, User, Trophy, Code2, Sun, Moon, LogOut, LogIn, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/context/AuthContext";
+import { resetIntro } from "@/App";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +84,17 @@ export const Header = () => {
               >
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profil</span>
+              </Button>
+
+              <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetIntro}
+                  className="gap-2"
+                  title="Revoir l'introduction"
+              >
+                <Play className="w-4 h-4" />
+                <span className="hidden sm:inline">Intro</span>
               </Button>
 
               {user ? (
