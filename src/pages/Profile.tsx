@@ -17,7 +17,18 @@ const Profile = () => {
     <AppLayout>
       <div className="space-y-6">
         {user ? (
-          <ProfileHeader user={user} />
+          <>
+            <ProfileHeader user={{ ...user, avatarOptions }} onEditAvatar={() => setOpen(true)} />
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogContent>
+                <h2 className="text-lg font-bold mb-4">Personnaliser mon avatar</h2>
+                <AvatarCustomizer onChange={setAvatarOptions} />
+                <DialogClose asChild>
+                  <Button className="mt-4 w-full">Fermer</Button>
+                </DialogClose>
+              </DialogContent>
+            </Dialog>
+          </>
         ) : (
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center justify-between gap-4">

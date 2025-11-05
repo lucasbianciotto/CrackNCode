@@ -1,0 +1,86 @@
+/* ======= PAGE 404 - STYLES ======= */
+
+.not-found-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+    /* mieux sur mobile que 100vh */
+    background-color: #f8f4ef;
+    /* Blanc cassé */
+    text-align: center;
+    padding: 20px;
+    font-family: "Poppins", Arial, sans-serif;
+    color: #000;
+    /* Texte noir */
+    gap: 12px;
+    /* espacement cohérent entre éléments */
+}
+
+/* Titre 404 (taille moyenne, légèrement décalé à gauche) */
+.not-found-title {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+    line-height: 1;
+    user-select: none;
+    transform: translateX(-6px);
+    /* léger décalage à gauche */
+}
+
+/* Image (un peu réduite) */
+.not-found-img {
+    width: clamp(180px, 30vw, 300px);
+    margin-top: 6px;
+    margin-bottom: 10px;
+    /* remonte un peu le texte */
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Texte descriptif (remonté un peu) */
+.not-found-text {
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    color: #000;
+    margin: 0 0 12px 0;
+    /* rapproche du bouton */
+}
+
+/* Lien retour accueil (bouton) */
+.not-found-link {
+    display: inline-block;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #000;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.not-found-link:hover {
+    background-color: #222;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.not-found-link:focus-visible {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.18);
+    transform: none;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+    .not-found-container {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .not-found-link {
+        width: fit-content;
+    }
+}

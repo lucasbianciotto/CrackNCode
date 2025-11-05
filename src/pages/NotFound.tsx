@@ -1,23 +1,28 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
+import "./NotFound.css";
+import testImage from "../img/404-octopus.png";
 
-const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
-
+const NotFound: React.FC = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 underline hover:text-blue-700">
-          Return to Home
-        </a>
-      </div>
-    </div>
+    <main className="not-found-container" role="main" aria-labelledby="nf-title">
+      <h1 id="nf-title" className="not-found-title">404</h1>
+
+      <img
+        src={testImage}
+        alt="Poulpe pirate illustrant l'erreur 404"
+        className="not-found-img"
+        draggable={false}
+      />
+
+      <p className="not-found-text">
+        Oups... la page que vous cherchez n'existe pas
+      </p>
+
+      <Link to="/" className="not-found-link" aria-label="Retour à l'accueil">
+        Retour à l'accueil
+      </Link>
+    </main>
   );
 };
 
