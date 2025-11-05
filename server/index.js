@@ -10,7 +10,7 @@ import { randomUUID } from "crypto";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const DEFAULT_PORT = Number(process.env.PORT) || 4000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8080";
 
 // In-memory user store (squelette). À remplacer par une vraie base plus tard
@@ -58,7 +58,7 @@ if (hasGoogleCreds) {
                 clientID: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                 callbackURL:
-                    process.env.GOOGLE_CALLBACK_URL || "http://localhost:4000/auth/google/callback",
+                    process.env.GOOGLE_CALLBACK_URL || `http://localhost:${DEFAULT_PORT}/auth/google/callback`,
             },
             async (accessToken, refreshToken, profile, done) => {
                 try {
@@ -145,8 +145,39 @@ app.get("/health", (_req, res) => {
 	res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-	console.log(`Auth server running on http://localhost:${PORT}`);
-});
+// Dev-friendly startup: if port is busy and no explicit PORT is set, try the next port.
+function startServer(port) {
+    const server = app.listen(port, () => {
+        console.log(`Auth server running on http://localhost:${port}`);
+        if (hasGoogleCreds && !process.env.GOOGLE_CALLBACK_URL && port !== DEFAULT_PORT) {
+            console.warn(
+                `[Auth] Attention: port modifié (${port}) mais GOOGLE_CALLBACK_URL n'est pas défini. Le callback Google par défaut vise le port ${DEFAULT_PORT}. Définissez GOOGLE_CALLBACK_URL pour OAuth.`,
+            );
+        }
+    });
+
+    server.on("error", (err) => {
+        if (err && err.code === "EADDRINUSE") {
+            // Si l'utilisateur a explicitement défini PORT, ne pas auto-shifter: demander de libérer le port.
+            const explicitPort = Boolean(process.env.PORT);
+            if (!explicitPort && !hasGoogleCreds) {
+                const next = port + 1;
+                console.warn(`[Server] Le port ${port} est occupé. Tentative sur le port ${next}...`);
+                // Petite attente pour laisser le port se libérer si le process concurrent se termine.
+                setTimeout(() => startServer(next), 300);
+            } else {
+                console.error(
+                    `[Server] Le port ${port} est déjà utilisé. Libérez-le ou définissez une variable d'environnement PORT différente.`,
+                );
+                process.exit(1);
+            }
+        } else {
+            console.error(`[Server] Erreur au démarrage:`, err);
+            process.exit(1);
+        }
+    });
+}
+
+startServer(DEFAULT_PORT);
 
 

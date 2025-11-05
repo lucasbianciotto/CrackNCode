@@ -27,8 +27,8 @@ const Language = () => {
   const language = languages.find((lang) => lang.id === id);
   const languageLevels = levels[id || ""] || [];
 
-  const total = getLanguageLevelsCount(language.id);
-  const raw = total ? (language.completedLevels / total) * 100 : 0;
+  const total = language ? getLanguageLevelsCount(language.id) : 0;
+  const raw = language && total ? (language.completedLevels / total) * 100 : 0;
   const percent = Math.min(100, Math.max(0, Math.round(raw)));
 
   if (!language) {
@@ -49,9 +49,7 @@ const Language = () => {
       setShowLoginPrompt(true);
       return;
     }
-    if (!level.isLocked) {
-      navigate(`/language/${id}/level/${level.id}`)
-    }
+    setSelectedLevel(level);
   };
 
   const handlePlay = () => {
@@ -59,9 +57,14 @@ const Language = () => {
       setShowLoginPrompt(true);
       return;
     }
-    toast.info("Mini-jeu à implémenter", {
-      description: `Le niveau "${selectedLevel?.title}" sera disponible prochainement !`,
-    });
+    if (!selectedLevel) return;
+    // HTML/CSS niveau 1 => lancer le mini‑jeu
+    if (id === "html" && selectedLevel.levelNumber === 1) {
+      navigate(`/language/${id}/level/${selectedLevel.id}`);
+      return;
+    }
+    // Autres niveaux => popup info (jeu à implémenter)
+    toast.info("Jeu à implémenter prochainement ✨");
     setSelectedLevel(null);
   };
 

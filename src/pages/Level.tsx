@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout.tsx";
 import { Card } from "@/components/ui/card.tsx";
 import { QuizRunner } from "@/components/minigames/QuizRunner";
 import { CodeFillRunner } from "@/components/minigames/CodeFillRunner";
+import { HtmlBuilderRunner } from "@/components/minigames/HtmlBuilderRunner";
 
 type RouteParams = {
     id?: string; // language id (e.g., "python")
@@ -87,6 +88,12 @@ const Level = () => {
                                     game={minigame}
                                     languageId={id}
                                     levelKey={level.id}
+                                />
+                            ) : minigame?.type === "html-builder" ? (
+                                <HtmlBuilderRunner
+                                    // @ts-expect-error: typage simplifié pour intégration rapide
+                                    game={minigame}
+                                    onExit={() => navigate(`/language/${id}`)}
                                 />
                             ) : (
                                 <div className="text-sm text-muted-foreground">

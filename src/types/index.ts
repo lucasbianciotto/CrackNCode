@@ -53,8 +53,23 @@ export interface CodeFillMinigame {
   passingScorePercent?: number; // % de réponses justes requis (défaut 100%)
 }
 
+// Mini‑jeu HTML Builder (éditeur HTML + objectifs CSS selectors)
+export interface HtmlBuilderMinigameGoal {
+  id: string;
+  description: string;
+  selector: string;
+  minTextLength?: number;
+  requireAttr?: string;
+}
+
+export interface HtmlBuilderMinigame {
+  type: "html-builder";
+  starter: string;
+  goals: HtmlBuilderMinigameGoal[];
+}
+
 // Union extensible
-export type Minigame = QuizMiniggame | CodeFillMinigame;
+export type Minigame = QuizMiniggame | CodeFillMinigame | HtmlBuilderMinigame;
 
 // Modèle Level
 export interface Level {

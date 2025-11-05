@@ -6,90 +6,114 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 271 81% 56%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 330 81% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 199 89% 48%;
+    /* Default (dark) theme — deep sea and gold accents */
+  --background: 53 10% 13%; /* #35302d noir pirate */
+  --foreground: 210 40% 98%;
+  --card: 53 10% 16%; /* #3b4245 grisbleu foncé */
+  --card-foreground: 210 40% 98%;
+  --popover: 53 10% 16%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 338 40% 35%; /* #7d3437 rouge foncé */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 320 20% 38%; /* #784c51 violet pirate */
+  --secondary-foreground: 210 40% 98%;
+  --accent: 320 20% 38%; /* #784c51 violet pirate */
+  --accent-foreground: 210 40% 98%;
+  --destructive: 338 40% 35%; /* #7d3437 rouge foncé */
+  --destructive-foreground: 210 40% 98%;
+  --muted: 53 10% 18%; /* #3b4245 grisbleu foncé */
+  --muted-foreground: 210 40% 80%;
+  --border: 53 10% 20%;
+  --input: 53 10% 20%;
+  --ring: 320 20% 38%; /* violet pirate */
     --radius: 0.75rem;
+
+    /* Gradients and effects used by Tailwind extensions */
+  --gradient-primary: linear-gradient(135deg, hsl(338 40% 35%), hsl(320 20% 38%));
+  --gradient-accent: linear-gradient(135deg, hsl(320 20% 38%), hsl(338 40% 35%));
+  --gradient-success: linear-gradient(135deg, hsl(320 20% 38%), hsl(53 10% 13%));
+  --gradient-hero: linear-gradient(135deg, hsl(338 40% 35% / 0.15), hsl(320 20% 38% / 0.15));
+
+    --shadow-sm: 0 1px 2px 0 hsl(222 40% 2% / 0.06);
+    --shadow-md: 0 4px 12px -2px hsl(222 40% 2% / 0.2);
+    --shadow-lg: 0 12px 24px -6px hsl(222 40% 2% / 0.3);
+    --shadow-card: 0 6px 20px -8px hsl(222 40% 2% / 0.35);
+    --shadow-card-hover: 0 12px 32px -12px hsl(222 40% 2% / 0.45);
+    --transition-smooth: color, background-color, opacity, transform, box-shadow;
   }
 }
 
 @layer base {
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 271 81% 56%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 330 81% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 199 89% 48%;
-    --radius: 0.75rem;
+  --background: 53 10% 13%; /* #35302d noir pirate */
+  --foreground: 210 40% 98%; /* bleu clair pour texte principal */
+  --card: 53 10% 16%; /* #3b4245 grisbleu foncé */
+  --card-foreground: 210 60% 92%; /* bleu-gris éclairci pour texte sur card */
+  --popover: 53 10% 16%;
+  --popover-foreground: 210 60% 92%;
+  --primary: 210 60% 62%; /* bleu clair pour éléments principaux */
+  --primary-foreground: 53 10% 13%;
+  --secondary: 210 40% 80%; /* gris-bleu éclairci pour éléments secondaires */
+  --secondary-foreground: 53 10% 13%;
+  --accent: 210 60% 62%; /* bleu clair accent pirate */
+  --accent-foreground: 53 10% 13%;
+  --destructive: 338 40% 35%; /* #7d3437 rouge foncé */
+  --destructive-foreground: 210 60% 92%;
+  --muted: 210 40% 30%; /* gris-bleu foncé pour muted */
+  --muted-foreground: 210 60% 92%;
+  --border: 210 40% 30%;
+  --input: 210 40% 30%;
+  --ring: 210 60% 62%; /* bleu clair pour ring */
+  --radius: 0.75rem;
+  --gradient-hero: linear-gradient(135deg, hsl(210 60% 62% / 0.12), hsl(210 40% 80% / 0.12));
   }
   .light {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 271 81% 56%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 330 81% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --muted: 217 33% 95%;
-    --muted-foreground: 222 47% 11%;
-    --border: 217 33% 90%;
-    --input: 217 33% 90%;
-    --ring: 199 89% 48%;
+    --background: 320 20% 98%; /* #f7f3f6 violet très pâle */
+    --foreground: 53 10% 13%; /* #35302d noir pirate */
+    --card: 320 20% 96%; /* #ede3ea gris-violet pâle */
+    --card-foreground: 53 10% 13%;
+    --popover: 320 20% 96%;
+    --popover-foreground: 53 10% 13%;
+    --primary: 338 40% 35%; /* #7d3437 rouge foncé */
+    --primary-foreground: 320 20% 98%;
+    --secondary: 320 20% 38%; /* #784c51 violet pirate */
+    --secondary-foreground: 320 20% 98%;
+    --accent: 320 20% 38%; /* #784c51 violet pirate */
+    --accent-foreground: 320 20% 98%;
+    --destructive: 338 40% 35%; /* #7d3437 rouge foncé */
+    --destructive-foreground: 320 20% 98%;
+    --muted: 320 20% 94%; /* #e6dbe2 gris-violet pâle */
+    --muted-foreground: 53 10% 35%;
+    --border: 320 20% 90%;
+    --input: 320 20% 90%;
+    --ring: 320 20% 38%;
     --radius: 0.75rem;
+    --gradient-hero: linear-gradient(135deg, hsl(338 40% 35% / 0.10), hsl(320 20% 38% / 0.10));
   }
 }
 
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground antialiased; font-family: 'Inter', sans-serif; }
+  /* Subtle parchment pattern in light mode only */
+  .light body {
+    background-image:
+      radial-gradient(hsl(40 40% 96% / 0.6) 1px, transparent 1px),
+      radial-gradient(hsl(24 29% 20% / 0.03) 1px, transparent 1px);
+    background-size: 18px 18px, 18px 18px;
+    background-position: 0 0, 9px 9px;
+  }
   code, pre { font-family: 'JetBrains Mono', monospace; }
   h1, h2, h3, h4, h5, h6 { @apply font-bold tracking-tight; }
 }
 
 @layer components {
-  .gradient-text { @apply bg-clip-text text-transparent; background-image: linear-gradient(135deg, hsl(199 89% 48%), hsl(271 81% 56%)); }
+  .gradient-text { @apply bg-clip-text text-transparent; background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))); }
   .card-hover { transition: all 0.3s ease; }
   .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px -10px hsl(0 0% 0% / 0.5); }
   .xp-bar { @apply relative h-3 w-full overflow-hidden rounded-full bg-muted; }
-  .xp-bar-fill { @apply h-full rounded-full transition-all duration-500; background: linear-gradient(135deg, hsl(142 76% 36%), hsl(199 89% 48%)); }
-  .level-badge { @apply inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-bold; background: linear-gradient(135deg, hsl(199 89% 48%), hsl(271 81% 56%)); }
+  .xp-bar-fill { @apply h-full rounded-full transition-all duration-500; background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary))); }
+  .level-badge { @apply inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-bold; background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))); }
 }
 
 @layer utilities {
