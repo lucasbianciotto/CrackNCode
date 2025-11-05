@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avataaars } from "@/components/ui/Avataaars";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -229,8 +229,21 @@ const defaultOptions: AvatarOptions = {
   skinColor: "Light",
 };
 
-export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions) => void }) {
-  const [options, setOptions] = useState<AvatarOptions>(defaultOptions);
+export function AvatarCustomizer({ 
+  onChange,
+  initialOptions 
+}: { 
+  onChange: (opts: AvatarOptions) => void;
+  initialOptions?: AvatarOptions | null;
+}) {
+  const [options, setOptions] = useState<AvatarOptions>(initialOptions || defaultOptions);
+
+  // Mettre à jour les options quand initialOptions change
+  useEffect(() => {
+    if (initialOptions) {
+      setOptions(initialOptions);
+    }
+  }, [initialOptions]);
 
   function handleChange(key: keyof AvatarOptions, value: string) {
     const newOptions = { ...options, [key]: value };
@@ -249,19 +262,25 @@ export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions)
   const showFacialHairColor = options.facialHairType && options.facialHairType !== "Blank";
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 items-start min-h-[420px] w-full max-w-full md:max-w-2xl px-2 md:px-0">
-      <div className="w-28 h-28 md:w-32 md:h-32 mb-4 md:mb-0 mx-auto md:mx-0">
-        <Avataaars {...options} avatarStyle="Circle" style={{ width: "100%", height: "100%" }} />
+    <div className="flex flex-col md:flex-row gap-6 items-start w-full max-w-full">
+      {/* Aperçu de l'avatar */}
+      <div className="w-full md:w-auto flex-shrink-0">
+        <div className="w-40 h-40 md:w-48 md:h-48 mx-auto md:mx-0 rounded-full bg-gradient-primary p-2 flex items-center justify-center shadow-lg">
+          <Avataaars {...options} avatarStyle="Circle" style={{ width: "100%", height: "100%" }} />
+        </div>
       </div>
-      <Tabs defaultValue="visage" className="w-full">
+      
+      {/* Contrôles de personnalisation */}
+      <div className="flex-1 w-full min-w-0">
+        <Tabs defaultValue="visage" className="w-full">
         <TabsList className="mb-4 flex flex-wrap justify-center md:justify-start">
           <TabsTrigger value="visage">Visage</TabsTrigger>
           <TabsTrigger value="cheveux">Cheveux</TabsTrigger>
           <TabsTrigger value="accessoires">Accessoires</TabsTrigger>
           <TabsTrigger value="vetements">Vêtements</TabsTrigger>
         </TabsList>
-        <TabsContent value="visage">
-          <div className="grid grid-cols-1 gap-4 mt-12">
+        <TabsContent value="visage" className="mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 text-sm font-medium">Yeux</label>
               <Select value={options.eyeType} onValueChange={v => handleChange("eyeType", v)}>
@@ -300,8 +319,8 @@ export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions)
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="cheveux">
-          <div className="grid grid-cols-1 gap-4 mt-12">
+        <TabsContent value="cheveux" className="mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 text-sm font-medium">Cheveux / Chapeau</label>
               <Select value={options.topType} onValueChange={v => handleChange("topType", v)}>
@@ -335,8 +354,8 @@ export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions)
             )}
           </div>
         </TabsContent>
-        <TabsContent value="accessoires">
-          <div className="grid grid-cols-1 gap-4 mt-12">
+        <TabsContent value="accessoires" className="mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 text-sm font-medium">Accessoires</label>
               <Select value={options.accessoriesType} onValueChange={v => handleChange("accessoriesType", v)}>
@@ -368,8 +387,8 @@ export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions)
             )}
           </div>
         </TabsContent>
-        <TabsContent value="vetements">
-          <div className="grid grid-cols-1 gap-4 mt-12">
+        <TabsContent value="vetements" className="mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 text-sm font-medium">Vêtements</label>
               <Select value={options.clotheType} onValueChange={v => handleChange("clotheType", v)}>
@@ -402,6 +421,7 @@ export function AvatarCustomizer({ onChange }: { onChange: (opts: AvatarOptions)
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
