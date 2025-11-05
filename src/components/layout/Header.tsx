@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, User, Trophy, Skull, Sun, Moon } from "lucide-react";
+import {Home, User, Trophy, Code2, Sun, Moon, LogOut, LogIn} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/hooks/use-theme";
@@ -22,9 +22,8 @@ export const Header = () => {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 font-bold text-xl"
           >
-            <img src="/logo.png" alt="Logo Crack'n Code" className="w-8 h-8 object-contain" />
-            <span className="gradient-text">Crack'n Code</span>
-            <span className="hidden sm:inline text-sm font-semibold text-accent/80">🏴‍☠️</span>
+            <Code2 className="w-6 h-6 text-primary animate-pulse-glow" />
+            <span className="gradient-text">Devlingo</span>
           </button>
 
           {/* Navigation */}
@@ -74,6 +73,7 @@ export const Header = () => {
             </Button>
             {user ? (
               <Button variant="ghost" size="sm" onClick={logout} className="gap-2">
+                <LogOut />
                 Se déconnecter
               </Button>
             ) : (
@@ -83,6 +83,7 @@ export const Header = () => {
                 onClick={() => navigate("/login")}
                 className="gap-2"
               >
+                <LogIn />
                 Se connecter
               </Button>
             )}
