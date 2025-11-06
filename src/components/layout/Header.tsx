@@ -37,7 +37,7 @@ export const Header = () => {
                 className="flex items-center gap-2 font-bold text-xl"
             >
               <Code2 className="w-6 h-6 text-primary animate-pulse-glow" />
-              <span className="gradient-text">Devlingo</span>
+              <span className="gradient-text">Crack'n Code</span>
             </button>
 
             {/* Navigation */}
