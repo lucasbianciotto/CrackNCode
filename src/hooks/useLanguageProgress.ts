@@ -44,11 +44,21 @@ export const useLanguageProgress = (languageId: string | undefined, enabled: boo
 
       // Met à jour le langage avec la progression
       const staticLang = staticLanguages.find((lang) => lang.id === languageId);
+      
+      // Calcule l'XP gagné depuis les niveaux complétés
+      const XP_PER_LEVEL = [100, 150, 200, 200, 250];
+      const earnedXP = completed > 0 
+        ? XP_PER_LEVEL.slice(0, completed).reduce((sum, xp) => sum + xp, 0)
+        : 0;
+      const totalXP = 900; // 100 + 150 + 200 + 200 + 250
+      
       const updatedLanguage = staticLang
         ? {
             ...staticLang,
             completedLevels: completed,
             currentLevel: data.currentLevel || completed + 1,
+            earnedXP: data.earnedXP !== undefined ? data.earnedXP : earnedXP,
+            totalXP: data.totalXP !== undefined ? data.totalXP : totalXP,
           }
         : undefined;
 

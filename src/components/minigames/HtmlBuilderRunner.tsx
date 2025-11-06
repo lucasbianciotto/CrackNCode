@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -39,6 +40,8 @@ export function HtmlBuilderRunner({
 }) {
   const [code, setCode] = useState<string>(game.starter);
   const [hintCount, setHintCount] = useState<number>(0);
+  const [hasUsedTemplate, setHasUsedTemplate] = useState<boolean>(false);
+  const queryClient = useQueryClient();
   const MAX_HINTS = 3; // Limite de 3 indices
 
   const goalChecks = useMemo(() => {
@@ -74,6 +77,7 @@ export function HtmlBuilderRunner({
         return;
       }
       setCode(tmpl);
+      setHasUsedTemplate(true);
       toast.success("Modèle complet inséré avec succès");
     } catch (err) {
       console.error("Erreur lors de l'insertion du modèle:", err);
@@ -121,6 +125,17 @@ export function HtmlBuilderRunner({
       return;
     }
 
+    // Empêche de valider si on a utilisé le modèle complet ou trop d'indices
+    if (hasUsedTemplate) {
+      toast.error("Vous ne pouvez pas valider un niveau en utilisant le modèle complet. Essayez de le faire vous-même !");
+      return;
+    }
+
+    if (hintCount >= MAX_HINTS) {
+      toast.error("Vous avez utilisé trop d'indices. Essayez de compléter le niveau avec moins d'aide !");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE}/api/languages/${languageId}/complete`, {
         method: "POST",
@@ -135,7 +150,15 @@ export function HtmlBuilderRunner({
 
       if (res.ok) {
         const data = await res.json();
-        toast.success(`Niveau complété ! +${xpReward || 0} XP`);
+        
+        // Vérifie si le niveau a déjà été complété (pas de gain d'XP)
+        const wasAlreadyCompleted = data.wasAlreadyCompleted || false;
+        
+        if (wasAlreadyCompleted) {
+          toast.success("Niveau complété ! (Déjà complété précédemment - pas de gain d'XP)");
+        } else {
+          toast.success(`Niveau complété ! +${xpReward || 0} XP`);
+        }
         
         // Affiche les nouveaux succès débloqués
         if (data.newAchievements && data.newAchievements.length > 0) {
@@ -145,6 +168,11 @@ export function HtmlBuilderRunner({
             });
           }, 500);
         }
+        
+        // Invalide les queries pour forcer l'actualisation des données
+        queryClient.invalidateQueries({ queryKey: ["user"] });
+        queryClient.invalidateQueries({ queryKey: ["languages"] });
+        queryClient.invalidateQueries({ queryKey: ["language-progress"] });
         
         if (onExit) {
           setTimeout(() => onExit(), 1500);
@@ -157,6 +185,9 @@ export function HtmlBuilderRunner({
       toast.error("Erreur lors de la validation du niveau");
     }
   };
+
+  // Désactive le bouton si on a utilisé le modèle complet ou trop d'indices
+  const canValidate = allOk && !hasUsedTemplate && hintCount < MAX_HINTS;
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -242,10 +273,18 @@ export function HtmlBuilderRunner({
             onChange={(e) => setCode(e.target.value)}
           />
             <div className="flex justify-between items-center p-3 border-t border-border">
-              <div className="text-sm text-muted-foreground">{allOk ? "Tous les objectifs sont validés ✅" : "Complète les objectifs pour valider"}</div>
+              <div className="text-sm text-muted-foreground">
+                {allOk 
+                  ? hasUsedTemplate 
+                    ? "⚠️ Vous avez utilisé le modèle complet - vous ne pouvez pas valider" 
+                    : hintCount >= MAX_HINTS
+                    ? "⚠️ Vous avez utilisé trop d'indices - vous ne pouvez pas valider"
+                    : "Tous les objectifs sont validés ✅"
+                  : "Complète les objectifs pour valider"}
+              </div>
               <div className="flex gap-2">
                 {onExit && <Button variant="ghost" onClick={onExit}>Quitter</Button>}
-                <Button disabled={!allOk} onClick={handleCompleteLevel}>Valider le niveau</Button>
+                <Button disabled={!canValidate} onClick={handleCompleteLevel}>Valider le niveau</Button>
               </div>
             </div>
         </Card>

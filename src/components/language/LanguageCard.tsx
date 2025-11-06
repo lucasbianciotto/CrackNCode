@@ -55,7 +55,9 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Progression</span>
-                <span className="font-bold text-foreground">{percent}%</span>
+                <span className="font-bold text-foreground">
+                  {language.earnedXP} / {language.totalXP} XP
+                </span>
               </div>
               <div className="xp-bar">
                 <div
@@ -64,7 +66,7 @@ export const LanguageCard = ({ language, onClick }: LanguageCardProps) => {
                 />
               </div>
               <div className="text-xs text-muted-foreground">
-                {language.earnedXP} / {language.totalXP} XP
+                {Math.round(percent)}% complété
               </div>
             </div>
           </div>

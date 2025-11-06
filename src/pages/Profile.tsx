@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
-import { Award, TrendingUp, Calendar, User, Trophy, Target, Pencil, Code2, Zap, BookOpen } from "lucide-react";
+import { Award, TrendingUp, Calendar, User, Trophy, Target, Pencil, Code2, Zap, BookOpen, Settings } from "lucide-react";
 import { useState } from "react";
 import { AvatarCustomizer, AvatarOptions } from "@/components/profile/AvatarCustomizer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import { usePersonalisation } from "@/hooks/usePersonalisation";
 import { useActivities } from "@/hooks/useActivities";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [open, setOpen] = useState(false);
   const [tempAvatarOptions, setTempAvatarOptions] = useState<AvatarOptions | null>(null);
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -116,9 +118,6 @@ const Profile = () => {
               <h1 className="text-4xl font-bold gradient-text">Mon Profil</h1>
               <p className="text-muted-foreground">Gérez votre profil et suivez votre progression</p>
             </div>
-          </div>
-          <PirateAnchor size={40} />
-        </div>
 
         {/* Section principale avec avatar et stats */}
         <div className="grid md:grid-cols-3 gap-6">

@@ -36,9 +36,9 @@ export const useLanguagesData = (enabled: boolean = true) => {
 
       return mergedLanguages;
     },
-    enabled,
-    refetchInterval: 5000, // Actualise toutes les 5 secondes
-    refetchIntervalInBackground: true,
+    enabled: true, // Toujours activé pour afficher les langages même si pas connecté
+    refetchInterval: enabled ? 5000 : false, // Actualise seulement si connecté
+    refetchIntervalInBackground: enabled,
     refetchOnWindowFocus: true,
     staleTime: 0,
     retry: 1,

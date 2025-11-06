@@ -1,6 +1,9 @@
 import { Language } from "@/types";
 import {levels} from "@/data/levels.ts";
 
+// Calcul de l'XP total par langage : 100 + 150 + 200 + 200 + 250 = 900 XP
+const XP_PER_LANGUAGE = 900;
+
 export const languages: Language[] = [
   // 1) HTML/CSS
   {
@@ -11,7 +14,7 @@ export const languages: Language[] = [
     description: "Structure et styles: démarre avec un mini‑jeu interactif",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 3000,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 2) JavaScript
@@ -23,7 +26,7 @@ export const languages: Language[] = [
     description: "Le langage du web interactif",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 7500,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 3) PHP
@@ -35,7 +38,7 @@ export const languages: Language[] = [
     description: "Backend web pragmatique",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 5500,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 4) SQL
@@ -45,9 +48,9 @@ export const languages: Language[] = [
     icon: "🧮",
     color: "hsl(199 89% 48%)",
     description: "Interroger et manipuler des données",
-    currentLevel: 2,
+    currentLevel: 1,
     completedLevels: 0,
-    totalXP: 5000,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 5) Python
@@ -59,7 +62,7 @@ export const languages: Language[] = [
     description: "Polyvalent et accessible",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 6000,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 6) Java
@@ -71,7 +74,7 @@ export const languages: Language[] = [
     description: "Robuste et orienté objet",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 6000,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 7) C#
@@ -83,7 +86,7 @@ export const languages: Language[] = [
     description: "Développement moderne et gaming",
     currentLevel: 1,
     completedLevels: 0,
-    totalXP: 5500,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
   // 8) C++

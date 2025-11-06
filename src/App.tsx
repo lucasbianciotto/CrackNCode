@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { BossProvider } from "@/context/BossContext";
 import { GameIntro } from "@/components/intro/GameIntro";
 import Home from "./pages/Home";
 import Language from "./pages/Language";
@@ -13,6 +14,9 @@ import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 import Level from "@/pages/Level.tsx";
 import Login from "./pages/Login";
+import BossBattle from "./pages/BossBattle";
+// ADMIN - À RETIRER EN PRODUCTION
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,6 +85,9 @@ const AppContent = () => {
         <Route path="/language/:id/level/:levelId" element={<Level />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/boss" element={<BossBattle />} />
+        {/* ADMIN - À RETIRER EN PRODUCTION */}
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
@@ -93,7 +100,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <AppContent />
+        <BossProvider>
+          <AppContent />
+        </BossProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

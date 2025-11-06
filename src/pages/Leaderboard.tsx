@@ -15,17 +15,29 @@ const Leaderboard = () => {
     xp: number;
     avatarOptions?: any;
   }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/leaderboard`);
+        setIsLoading(true);
+        setError(null);
+        const res = await fetch(`${API_BASE}/api/leaderboard`, {
+          credentials: "include",
+        });
         if (res.ok) {
           const data = await res.json();
           setTopPlayers(data.leaderboard || []);
+        } else {
+          const errorData = await res.json().catch(() => ({ error: "Erreur inconnue" }));
+          setError(errorData.error || "Erreur lors du chargement du classement");
         }
       } catch (err) {
         console.error("Erreur lors du chargement du leaderboard:", err);
+        setError("Impossible de charger le classement");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -49,32 +61,80 @@ const Leaderboard = () => {
         </div>
         {/* Leaderboard */}
         <Card className="p-6 bg-card border-border">
-          <div className="space-y-3">
-            {topPlayers.map((player) => (
-              <div
-                key={player.rank}
-                className={`flex items-center gap-4 p-4 rounded-lg transition-all ${
-                  player.rank <= 3
-                    ? "bg-gradient-card border border-border"
-                    : "bg-muted"
-                }`}
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Chargement du classement...
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-2">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm text-primary hover:underline"
               >
-                {/* Rank */}
-                <div className="w-12 h-12 flex items-center justify-center shrink-0">
-                  {player.rank === 1 && (
-                    <Medal className="w-8 h-8 text-primary" />
-                  )}
-                  {player.rank === 2 && (
-                    <Medal className="w-8 h-8 text-muted-foreground" />
-                  )}
-                  {player.rank === 3 && (
-                    <Medal className="w-7 h-7 text-secondary" />
-                  )}
-                  {player.rank > 3 && (
-                    <span className="text-xl font-bold text-muted-foreground">
-                      #{player.rank}
-                    </span>
-                  )}
+                Réessayer
+              </button>
+            </div>
+          ) : topPlayers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun joueur dans le classement pour le moment.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topPlayers.map((player) => (
+                <div
+                  key={player.rank}
+                  className={`flex items-center gap-4 p-4 rounded-lg transition-all ${
+                    player.rank <= 3
+                      ? "bg-gradient-card border border-border"
+                      : "bg-muted"
+                  }`}
+                >
+                  {/* Rank */}
+                  <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                    {player.rank === 1 && (
+                      <Medal className="w-8 h-8 text-primary" />
+                    )}
+                    {player.rank === 2 && (
+                      <Medal className="w-8 h-8 text-muted-foreground" />
+                    )}
+                    {player.rank === 3 && (
+                      <Medal className="w-7 h-7 text-secondary" />
+                    )}
+                    {player.rank > 3 && (
+                      <span className="text-xl font-bold text-muted-foreground">
+                        #{player.rank}
+                      </span>
+                    )}
+                  </div>
+                  {/* Avatar */}
+                  <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden shrink-0">
+                    {player.avatarOptions ? (
+                      <Avataaars
+                        {...player.avatarOptions}
+                        avatarStyle="Circle"
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <span className="text-2xl">💻</span>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-foreground truncate">
+                      {player.username}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Niveau {player.level}
+                    </p>
+                  </div>
+                  {/* XP */}
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-foreground">
+                      {player.xp.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">XP</p>
+                  </div>
                 </div>
                 {/* Avatar */}
                 <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center overflow-hidden shrink-0">
