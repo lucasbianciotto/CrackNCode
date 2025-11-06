@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Zap, AlertTriangle, Trophy, Skull } from "lucide-react";
+import { ArrowLeft, Clock, Zap, AlertTriangle, Trophy, Skull, Sparkles, XCircle } from "lucide-react";
 import { useBoss } from "@/context/BossContext";
 import { useLanguagesData } from "@/hooks/useLanguagesData";
 import { useUserData } from "@/hooks/useUserData";
@@ -53,9 +53,12 @@ export default function BossBattle() {
 
   // Initialiser le boss
   useEffect(() => {
-    const boss = getMainBoss();
-    setCurrentBoss({ ...boss, currentHP: boss.maxHP });
-  }, [setCurrentBoss]);
+    if (!currentBoss) {
+      const boss = getMainBoss();
+      setCurrentBoss({ ...boss, currentHP: boss.maxHP });
+      console.log("Boss initialized in useEffect:", boss.maxHP);
+    }
+  }, [setCurrentBoss, currentBoss]);
 
   // Timer global
   useEffect(() => {
@@ -82,11 +85,24 @@ export default function BossBattle() {
     }
   }, [currentBoss, phase]);
 
+  // Debug: Log les changements de HP
+  useEffect(() => {
+    if (currentBoss) {
+      console.log("Boss HP updated:", currentBoss.currentHP, "/", currentBoss.maxHP);
+    }
+  }, [currentBoss?.currentHP]);
+
   // Démarrer le combat
   const startBattle = () => {
     if (!isUnlocked()) {
       toast.error("Vous devez compléter 100% de tous les langages pour débloquer le combat !");
       return;
+    }
+    // S'assurer que le boss est initialisé
+    if (!currentBoss) {
+      const boss = getMainBoss();
+      setCurrentBoss({ ...boss, currentHP: boss.maxHP });
+      console.log("Boss initialized in startBattle:", boss.maxHP);
     }
     setPhase("phase1");
     setTimeRemaining(TOTAL_TIME_SECONDS);
@@ -143,21 +159,26 @@ export default function BossBattle() {
 
   // Gérer la réussite d'un défi
   const handleChallengeSuccess = useCallback(() => {
+    console.log("handleChallengeSuccess called", { phase, currentLanguageId, currentBoss: currentBoss?.currentHP });
     setIsChallengeActive(false);
 
     if (phase === "phase1" && currentLanguageId) {
       // Phase 1 : couper un tentacule
       setCompletedTentacles((prev) => new Set([...prev, currentLanguageId!]));
+      console.log("Calling damageBoss with", PHASE1_DAMAGE);
       damageBoss(PHASE1_DAMAGE);
       toast.success(`Tentacule ${languages.find(l => l.id === currentLanguageId)?.name} coupé ! -${PHASE1_DAMAGE} HP`);
       setTimeout(() => launchPhase1Challenge(), 1500);
     } else if (phase === "phase2") {
       // Phase 2 : dégâts au cœur
+      console.log("Calling damageBoss with", PHASE2_DAMAGE);
       damageBoss(PHASE2_DAMAGE);
       toast.success(`Cœur du Kraken touché ! -${PHASE2_DAMAGE} HP`);
       setTimeout(() => launchPhase2Challenge(), 1500);
+    } else {
+      console.warn("handleChallengeSuccess: phase or currentLanguageId not set", { phase, currentLanguageId });
     }
-  }, [phase, currentLanguageId, damageBoss, launchPhase1Challenge, launchPhase2Challenge]);
+  }, [phase, currentLanguageId, damageBoss, launchPhase1Challenge, launchPhase2Challenge, currentBoss]);
 
   // Gérer l'échec d'un défi
   const handleChallengeFailure = useCallback(() => {
@@ -405,6 +426,38 @@ export default function BossBattle() {
         {/* Challenge Area */}
         {isChallengeActive && currentChallenge && (
           <Card className="p-6 border-border">
+            {/* Boutons de cheat - À RETIRER EN PRODUCTION */}
+            <div className="mb-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                    Mode Cheat (Test uniquement)
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleChallengeSuccess}
+                    className="gap-2 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Réussir
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleChallengeFailure}
+                    className="gap-2 bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/20"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Échouer
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {phase === "phase2" && currentChallenge.id ? (
               // Phase 2 : Défi multi-langages
               <MultiLanguageChallenge
