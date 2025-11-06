@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { Boss } from "@/types";
 
 interface BossContextType {
@@ -25,27 +25,34 @@ interface BossProviderProps {
 export const BossProvider = ({ children }: BossProviderProps) => {
   const [currentBoss, setCurrentBossState] = useState<Boss | null>(null);
 
-  const setCurrentBoss = (boss: Boss | null) => {
+  const setCurrentBoss = useCallback((boss: Boss | null) => {
     setCurrentBossState(boss);
-  };
+  }, []);
 
-  const damageBoss = (damage: number) => {
-    if (currentBoss) {
-      setCurrentBossState({
-        ...currentBoss,
-        currentHP: Math.max(0, currentBoss.currentHP - damage),
-      });
-    }
-  };
+  const damageBoss = useCallback((damage: number) => {
+    setCurrentBossState((prevBoss) => {
+      if (!prevBoss) {
+        console.warn("damageBoss called but currentBoss is null");
+        return prevBoss;
+      }
+      const newHP = Math.max(0, prevBoss.currentHP - damage);
+      console.log(`damageBoss: ${prevBoss.currentHP} - ${damage} = ${newHP}`);
+      return {
+        ...prevBoss,
+        currentHP: newHP,
+      };
+    });
+  }, []);
 
-  const resetBoss = () => {
-    if (currentBoss) {
-      setCurrentBossState({
-        ...currentBoss,
-        currentHP: currentBoss.maxHP,
-      });
-    }
-  };
+  const resetBoss = useCallback(() => {
+    setCurrentBossState((prevBoss) => {
+      if (!prevBoss) return prevBoss;
+      return {
+        ...prevBoss,
+        currentHP: prevBoss.maxHP,
+      };
+    });
+  }, []);
 
   return (
     <BossContext.Provider

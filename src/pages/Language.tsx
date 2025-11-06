@@ -119,7 +119,9 @@ const Language = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-foreground">Progression globale</span>
-              <span className="font-bold text-foreground">{percent}%</span>
+              <span className="font-bold text-foreground">
+                {language.earnedXP} / {language.totalXP} XP
+              </span>
             </div>
             <div className="xp-bar h-4">
               <div
@@ -128,8 +130,8 @@ const Language = () => {
               />
             </div>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{language.earnedXP} XP gagnés</span>
-              <span>{language.totalXP} XP total</span>
+              <span>{Math.round(percent)}% complété</span>
+              <span>{language.totalXP - language.earnedXP} XP restants</span>
             </div>
           </div>
         </div>

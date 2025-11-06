@@ -192,7 +192,9 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs md:text-sm font-medium text-foreground">Progression</span>
-                  <span className="text-base md:text-lg font-bold text-foreground">{percent}%</span>
+                  <span className="text-base md:text-lg font-bold text-foreground">
+                    {selectedLanguage.earnedXP} / {selectedLanguage.totalXP} XP
+                  </span>
                 </div>
                 <div className="xp-bar">
                   <div
@@ -201,8 +203,8 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
                   />
                 </div>
                 <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{selectedLanguage.earnedXP} XP</span>
-                  <span>{selectedLanguage.totalXP} XP</span>
+                  <span>{Math.round(percent)}% complété</span>
+                  <span>{selectedLanguage.totalXP - selectedLanguage.earnedXP} XP restants</span>
                 </div>
               </div>
 

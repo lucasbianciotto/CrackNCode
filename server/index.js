@@ -249,6 +249,23 @@ app.get("/api/languages", async (req, res) => {
 			where: { id_user: req.user.googleId },
 		});
 		
+		// Récupère toutes les activités pour calculer l'XP gagné par langage
+		const activities = await prisma.activity.findMany({
+			where: { id_user: req.user.googleId },
+			select: { language_id: true, xp_earned: true },
+		});
+		
+		// Calcule l'XP gagné par langage depuis les activités
+		const xpByLanguage = new Map();
+		activities.forEach(activity => {
+			const current = xpByLanguage.get(activity.language_id) || 0;
+			xpByLanguage.set(activity.language_id, current + (activity.xp_earned || 0));
+		});
+		
+		// Configuration des XP par niveau (100 + 150 + 200 + 200 + 250 = 900)
+		const XP_PER_LANGUAGE = 900;
+		const XP_PER_LEVEL = [100, 150, 200, 200, 250];
+		
 		// Récupère tous les langages disponibles
 		const languages = await prisma.language.findMany();
 		
@@ -264,13 +281,20 @@ app.get("/api/languages", async (req, res) => {
 			const completedLevel = pos?.completed_level || 0;
 			const currentLevel = completedLevel + 1;
 			
+			// Calcule l'XP gagné depuis les activités, ou depuis les niveaux complétés si pas d'activités
+			let earnedXP = xpByLanguage.get(lang.id) || 0;
+			
+			// Si pas d'activités mais des niveaux complétés, calcule depuis les niveaux
+			if (earnedXP === 0 && completedLevel > 0) {
+				earnedXP = XP_PER_LEVEL.slice(0, completedLevel).reduce((sum, xp) => sum + xp, 0);
+			}
+			
 			return {
 				id: lang.id,
 				currentLevel,
 				completedLevels: completedLevel,
-				// Ces valeurs seront calculées côté frontend si nécessaire
-				totalXP: 0,
-				earnedXP: 0,
+				totalXP: XP_PER_LANGUAGE, // 900 XP total par langage
+				earnedXP: earnedXP,
 			};
 		});
 		
@@ -299,10 +323,25 @@ app.get("/api/languages/:languageId/levels", async (req, res) => {
 		
 		const completedLevel = position?.completed_level || 0;
 		
-		// Retourne le dernier niveau complété
+		// Récupère les activités pour ce langage pour calculer l'XP gagné
+		const activities = await prisma.activity.findMany({
+			where: { 
+				id_user: req.user.googleId,
+				language_id: languageId,
+			},
+			select: { xp_earned: true },
+		});
+		
+		// Calcule l'XP gagné depuis les activités
+		const earnedXP = activities.reduce((sum, activity) => sum + (activity.xp_earned || 0), 0);
+		const totalXP = 900; // 100 + 150 + 200 + 200 + 250
+		
+		// Retourne le dernier niveau complété avec l'XP
 		return res.json({
 			completedLevel,
 			currentLevel: completedLevel + 1,
+			earnedXP,
+			totalXP,
 		});
 	} catch (err) {
 		console.error("GET /api/languages/:languageId/levels error:", err);
@@ -397,6 +436,7 @@ app.post("/api/languages/:languageId/complete", async (req, res) => {
 				completedLevel: position.completed_level,
 				currentLevel: position.completed_level + 1,
 			},
+			wasAlreadyCompleted,
 			newAchievements,
 		});
 	} catch (err) {
@@ -427,15 +467,17 @@ app.get("/api/leaderboard", async (req, res) => {
 		const persMap = new Map(personalisations.map(p => [p.id_user, p]));
 		
 		const LEVEL_SIZE = 1000;
-		const leaderboard = topUsers.map((user, index) => {
-			const level = Math.floor(user.xp_global / LEVEL_SIZE) + 1;
+		// Filtre les utilisateurs valides et construit le leaderboard
+		const validUsers = topUsers.filter(user => user.nom && user.prenom);
+		const leaderboard = validUsers.map((user, index) => {
+			const level = Math.floor((user.xp_global || 0) / LEVEL_SIZE) + 1;
 			const pers = persMap.get(user.id_google);
 			return {
 				rank: index + 1,
 				id: user.id_google,
-				username: `${user.prenom} ${user.nom}`,
+				username: `${user.prenom || ""} ${user.nom || ""}`.trim() || "Joueur anonyme",
 				level,
-				xp: user.xp_global,
+				xp: user.xp_global || 0,
 				avatarOptions: pers ? {
 					avatarStyle: "Circle",
 					topType: pers.hair || "ShortHairShortFlat",
@@ -706,6 +748,122 @@ app.put("/api/personalisation", async (req, res) => {
 app.get("/health", (_req, res) => {
 	res.json({ ok: true });
 });
+
+// ============================================
+// ADMIN ENDPOINTS - À RETIRER EN PRODUCTION
+// ============================================
+// Ces endpoints permettent de reset un utilisateur ou de débloquer tout pour les tests.
+// Pour les retirer : supprimez cette section complète (lignes suivantes jusqu'à "// FIN ADMIN")
+
+// Reset complet d'un utilisateur (wipe toutes ses données)
+app.post("/api/admin/reset-user", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	
+	try {
+		const userId = req.user.googleId;
+		
+		// Supprime toutes les données de l'utilisateur
+		await prisma.activity.deleteMany({ where: { id_user: userId } });
+		await prisma.succes.deleteMany({ where: { id_user: userId } });
+		await prisma.position.deleteMany({ where: { id_user: userId } });
+		
+		// Remet l'XP à 0
+		await prisma.user.update({
+			where: { id_google: userId },
+			data: { xp_global: 0 },
+		});
+		
+		// Reset la personnalisation aux valeurs par défaut
+		await prisma.personalisation.upsert({
+			where: { id_user: userId },
+			create: {
+				id_user: userId,
+				...DEFAULT_PERSONALISATION_DB,
+			},
+			update: {
+				...DEFAULT_PERSONALISATION_DB,
+			},
+		});
+		
+		return res.json({ success: true, message: "Utilisateur reset avec succès" });
+	} catch (err) {
+		console.error("POST /api/admin/reset-user error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// Débloquer tous les langages à 100% (pour tester le combat Kraken)
+app.post("/api/admin/unlock-all", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	
+	try {
+		const userId = req.user.googleId;
+		
+		// Liste des langages avec leur nombre de niveaux et XP par niveau
+		// À synchroniser avec src/data/levels.ts - MAINTENANT 5 NIVEAUX PAR LANGAGE
+		const languagesConfig = {
+			html: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			javascript: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			php: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			sql: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			python: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			java: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			csharp: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+			cpp: { maxLevel: 5, xpPerLevel: [100, 150, 200, 200, 250] },
+		};
+		
+		// Calcule le total d'XP pour tous les niveaux
+		let totalXP = 0;
+		for (const [languageId, config] of Object.entries(languagesConfig)) {
+			// S'assure que le langage existe en base
+			await prisma.language.upsert({
+				where: { id: languageId },
+				create: { id: languageId },
+				update: {},
+			});
+			
+			await prisma.position.upsert({
+				where: {
+					id_user_id_level: {
+						id_user: userId,
+						id_level: languageId,
+					},
+				},
+				create: {
+					id_user: userId,
+					id_level: languageId,
+					completed_level: config.maxLevel,
+				},
+				update: {
+					completed_level: config.maxLevel,
+				},
+			});
+			
+			// Calcule l'XP total pour ce langage
+			const xpForLang = config.xpPerLevel.reduce((sum, xp) => sum + xp, 0);
+			totalXP += xpForLang;
+		}
+		
+		
+		// Met à jour l'XP global
+		await prisma.user.update({
+			where: { id_google: userId },
+			data: { xp_global: totalXP },
+		});
+		
+		return res.json({ 
+			success: true, 
+			message: "Tous les langages débloqués à 100%",
+			totalXP,
+		});
+	} catch (err) {
+		console.error("POST /api/admin/unlock-all error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// FIN ADMIN
+// ============================================
 
 // Dev-friendly startup: if port is busy and no explicit PORT is set, try the next port.
 function startServer(port) {

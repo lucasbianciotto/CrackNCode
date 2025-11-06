@@ -123,11 +123,12 @@ export interface Level {
   levelNumber: number;
   title: string;
   description: string;
-  difficulty: "beginner" | "intermediate" | "hard";
+  difficulty: LevelDifficulty;
   xpReward: number;
   isCompleted: boolean;
   isLocked: boolean;
-  minigame: Minigame;
+  prerequisites?: string[];
+  minigame?: Minigame;
 }
 
 // Modèle Language
