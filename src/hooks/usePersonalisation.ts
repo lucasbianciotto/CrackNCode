@@ -16,7 +16,7 @@ export const usePersonalisation = (enabled: boolean = true) => {
       const db = json.personalisation || {};
       
       const mapped: AvatarOptions = {
-        avatarStyle: "Circle",
+        // avatarStyle: "Circle",
         topType: db.hair ?? "ShortHairShortFlat",
         accessoriesType: db.accessories ?? "Blank",
         hatColor: db.hat_colors ?? "Black",

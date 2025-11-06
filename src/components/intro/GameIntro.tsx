@@ -167,8 +167,8 @@ export function GameIntro({ onComplete }: GameIntroProps) {
             <h2 className="text-4xl font-bold gradient-text drop-shadow-lg">Crack'n Code</h2>
             <p className="text-blue-200 font-medium">Navigation vers les mers du code...</p>
           </div>
-          <div className="w-64 h-2 bg-blue-900/50 rounded-full overflow-hidden mx-auto animate-fade-in-delay-2 border border-blue-500/30">
-            <div className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-full animate-progress-bar" />
+          <div className="w-64 h-1 bg-muted rounded-full overflow-hidden mx-auto animate-fade-in-delay-2">
+            <div className="h-full bg-gradient-hero rounded-full animate-progress-bar" />
           </div>
         </div>
       </div>
@@ -268,7 +268,7 @@ export function GameIntro({ onComplete }: GameIntroProps) {
             <Button
               size="lg"
               onClick={handlePlay}
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 px-10 py-7 text-xl font-bold shadow-2xl hover:shadow-cyan-500/50 transition-all border-2 border-cyan-300/30"
+              className="bg-gradient-hero text-primary-foreground hover:opacity-90 px-8 py-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all"
             >
               <Sword className="w-6 h-6 mr-2" />
               Embarquer pour l'aventure

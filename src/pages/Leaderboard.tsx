@@ -136,9 +136,37 @@ const Leaderboard = () => {
                     <p className="text-xs text-muted-foreground">XP</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center overflow-hidden shrink-0">
+                  {player.avatarOptions ? (
+                    <Avataaars
+                      {...player.avatarOptions}
+                      // avatarStyle="Circle"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  ) : (
+                    <span className="text-2xl">💻</span>
+                  )}
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-foreground truncate">
+                    {player.username}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Niveau {player.level}
+                  </p>
+                </div>
+                {/* XP */}
+                <div className="text-right shrink-0">
+                  <p className="font-bold text-foreground">
+                    {player.xp.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">XP</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       </div>
     </AppLayout>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { LevelCard } from "@/components/language/LevelCard";
+// import { LevelCard } from "@/components/language/LevelCard";
+import LevelMap from "@/components/language/LevelMap";
 import { LevelModal } from "@/components/language/LevelModal";
 import { getLanguageLevelsCount } from "@/data/languages";
 import { Level } from "@/types";
@@ -136,23 +137,53 @@ const Language = () => {
           </div>
         </div>
 
-        {/* Levels List */}
+        {/* Levels Map with background images */}
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-4">
-            Niveaux disponibles
-          </h2>
-
-          <div className="grid gap-3">
-            {languageLevels.map((level) => (
-              <LevelCard
-                key={level.id}
-                level={level}
-                onClick={() => handleLevelClick(level)}
-              />
-            ))}
-          </div>
-
-          {languageLevels.length === 0 && (
+          <h2 className="text-2xl font-bold text-foreground mb-4">Parcours des niveaux</h2>
+          {languageLevels.length > 0 ? (
+            (() => {
+              const overlayMap: Record<string, string> = {
+                html: "htmlcss",
+                cpp: "cpp",
+                sql: "sql",
+                python: "python",
+                java: "java",
+                javascript: "javascript",
+                php: "php",
+                csharp: "csharp",
+              };
+              const overlayKey = overlayMap[language.id];
+              return (
+                <div className="relative rounded-2xl border border-border overflow-hidden">
+                  {/* Background full-width map image */}
+                  <img
+                    src="/maps/fond.png"
+                    alt="Fond de la carte"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {/* Language overlay image (optional, only on xl+) */}
+                  <div className="hidden xl:block">
+                    {overlayKey && (
+                      <img
+                        src={`/maps/${overlayKey}.png`}
+                        alt={`Carte ${language.name}`}
+                        className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 w-[min(900px,92%)] opacity-90 pointer-events-none select-none"
+                      />
+                    )}
+                  </div>
+                  {/* Map content above images */}
+                  <div className="relative z-10 px-2 sm:px-4 py-6 min-h-[38rem]">
+                    <LevelMap
+                      languageId={language.id}
+                      levels={languageLevels}
+                      onSelect={handleLevelClick}
+                      forceVertical={typeof window !== 'undefined' ? window.innerWidth < 1440 : false}
+                    />
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
             <p className="text-center text-muted-foreground py-8">
               Aucun niveau disponible pour le moment.
             </p>

@@ -93,7 +93,7 @@ export const LevelModal = ({ level, isOpen, onClose, onPlay }: LevelModalProps) 
             ) : (
               <Button
                 onClick={onPlay}
-                className="flex-1 gap-2 bg-gradient-primary text-primary-foreground hover:opacity-90 dark:text-primary-foreground"
+                className="flex-1 gap-2 bg-gradient-hero text-primary-foreground hover:opacity-90 dark:text-primary-foreground"
                 size="lg"
               >
                 <Play className="w-5 h-5" />

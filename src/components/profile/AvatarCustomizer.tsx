@@ -213,7 +213,7 @@ export type AvatarOptions = {
 };
 
 const defaultOptions: AvatarOptions = {
-  avatarStyle: "Circle",
+  // avatarStyle: "Circle",
   topType: "ShortHairShortFlat",
   accessoriesType: "Blank",
   hatColor: "Black",
@@ -270,7 +270,7 @@ export function AvatarCustomizer({
     <div className="flex flex-col md:flex-row gap-6 items-start w-full max-w-full">
       {/* Aperçu de l'avatar */}
       <div className="w-full md:w-auto flex-shrink-0">
-        <div className="w-40 h-40 md:w-48 md:h-48 mx-auto md:mx-0 rounded-full bg-gradient-primary p-2 flex items-center justify-center shadow-lg">
+        <div className="w-40 h-40 md:w-48 md:h-48 mx-auto md:mx-0 rounded-full bg-gradient-hero p-2 flex items-center justify-center shadow-lg">
           <Avataaars {...options} avatarStyle="Circle" style={{ width: "100%", height: "100%" }} />
         </div>
       </div>

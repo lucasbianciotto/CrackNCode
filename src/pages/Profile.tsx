@@ -92,7 +92,7 @@ const Profile = () => {
 
   const xpPercentage = (user.currentXP / user.xpToNextLevel) * 100;
   const avatarProps = avatarOptions || (user as any).avatarOptions || {
-    avatarStyle: "Circle",
+    // avatarStyle: "Circle",
     topType: "ShortHairShortFlat",
     accessoriesType: "Blank",
     hairColor: "Brown",
@@ -108,30 +108,15 @@ const Profile = () => {
   return (
     <AppLayout>
       <div className="space-y-8">
-            {/* Header de la page profil avec titre */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-gradient-primary">
-                  <User className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-bold gradient-text">Mon Profil</h1>
-                  <p className="text-muted-foreground">Gérez votre profil et suivez votre progression</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {/* ADMIN - À RETIRER EN PRODUCTION */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate("/admin")}
-                  className="text-xs"
-                >
-                  <Settings className="w-4 h-4 mr-1" />
-                  Admin
-                </Button>
-                <PirateAnchor size={40} />
-              </div>
+        {/* Header de la page profil avec titre */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-full bg-gradient-hero">
+              <User className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold gradient-text">Mon Profil</h1>
+              <p className="text-muted-foreground">Gérez votre profil et suivez votre progression</p>
             </div>
 
         {/* Section principale avec avatar et stats */}
@@ -141,7 +126,7 @@ const Profile = () => {
             <div className="flex flex-col items-center space-y-4">
               <div className="relative flex flex-col items-center">
                 <div className="relative">
-                  <div className="w-32 h-32 rounded-full bg-gradient-primary flex items-center justify-center overflow-hidden shadow-lg">
+                  <div className="w-32 h-32 rounded-full bg-gradient-hero flex items-center justify-center overflow-hidden shadow-lg">
                     <Avataaars
                       style={{ width: '100%', height: '100%' }}
                       {...avatarProps}
