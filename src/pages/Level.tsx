@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card.tsx";
 import { QuizRunner } from "@/components/minigames/QuizRunner";
 import { CodeFillRunner } from "@/components/minigames/CodeFillRunner";
 import { HtmlBuilderRunner } from "@/components/minigames/HtmlBuilderRunner";
+import { CodeAssemblyRunner } from "@/components/minigames/CodeAssemblyRunner";
+import {BossBattleMinigame} from "@/components/minigames/BossBattleMinigame.tsx";
 
 type RouteParams = {
     id?: string; // language id (e.g., "python")
@@ -98,6 +100,28 @@ const Level = () => {
                                     levelNumber={level.levelNumber}
                                     xpReward={level.xpReward}
                                     levelTitle={level.title}
+                                />
+                            ) : minigame?.type === "code-assembly" ? (
+                                <CodeAssemblyRunner
+                                    game={minigame}
+                                    onComplete={(success) => {
+                                        if (success) {
+                                            alert("Bravo ! Vous avez réussi.");
+                                        } else {
+                                            alert("Réessayez, l'ordre est incorrect.");
+                                        }
+                                    }}
+                                />
+                            ) : minigame?.type === "boss-battle" ? (
+                                <BossBattleMinigame
+                                    game={minigame}
+                                    onComplete={(success) => {
+                                        if (success) {
+                                            alert("Félicitations ! Vous avez vaincu le boss.");
+                                        } else {
+                                            alert("Le boss vous a vaincu. Réessayez !");
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <div className="text-sm text-muted-foreground">

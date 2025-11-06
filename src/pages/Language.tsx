@@ -60,13 +60,7 @@ const Language = () => {
       return;
     }
     if (!selectedLevel) return;
-    // HTML/CSS niveau 1 => lancer le mini‑jeu
-    if (id === "html" && selectedLevel.levelNumber === 1) {
-      navigate(`/language/${id}/level/${selectedLevel.id}`);
-      return;
-    }
-    // Autres niveaux => popup info (jeu à implémenter)
-    toast.info("Jeu à implémenter prochainement ✨");
+    navigate(`/language/${id}/level/${selectedLevel.id}`);
     setSelectedLevel(null);
   };
 
