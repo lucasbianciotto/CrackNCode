@@ -3,13 +3,13 @@ import { Boss } from "@/types";
 // Boss principal unique pour toute l'application
 export const mainBoss: Boss = {
   id: "main-boss",
-  name: "Codex",
-  title: "Le Gardien Ultime du Code",
-  description: "Un être légendaire qui protège les secrets de la programmation",
-  lore: "Codex est l'entité suprême qui règne sur tous les langages de programmation. Depuis des millénaires, il défie les développeurs qui osent s'aventurer dans son royaume. Chaque défi relevé l'affaiblit, mais sa puissance est immense. Vaincs-le en maîtrisant tous les langages et en complétant tous les défis !",
+  name: "Kraken",
+  title: "Le Kraken du Code",
+  description: "Une menace terrifiante qui a plongé le monde des développeurs dans les ténèbres",
+  lore: "Le Kraken du Code est l'entité suprême qui règne sur tous les langages de programmation. Ses tentacules d'erreurs et de bugs paralysent les projets les plus ambitieux. Depuis des millénaires, il défie les développeurs qui osent s'aventurer dans son royaume. Chaque défi relevé l'affaiblit, mais sa puissance est immense. Vaincs-le en maîtrisant tous les langages et en complétant tous les défis !",
   maxHP: 1000,
-  currentHP: 850, // Affaibli par les défis précédents
-  avatar: "👹",
+  currentHP: 1000, // Commence à 100% pour le combat
+  avatar: "🐙",
   color: "#ef4444",
 };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { SkipForward, Play, Code2, Ship, Zap, Trophy, AlertTriangle, ChevronRight } from "lucide-react";
+import { SkipForward, Play, Code2, Ship, Zap, Trophy, AlertTriangle, ChevronRight, Waves, Sword } from "lucide-react";
 
 interface GameIntroProps {
   onComplete: () => void;
@@ -19,49 +19,61 @@ const storySteps: StoryStep[] = [
     id: 1,
     title: "Chargement...",
     text: "Initialisation du système de combat...",
-    icon: <Code2 className="w-16 h-16 animate-pulse" />,
+    icon: <Code2 className="w-16 h-16 animate-pulse text-primary" />,
     duration: 3000,
   },
   {
     id: 2,
-    text: "Au cœur des mers du code, une menace terrifiante rôde...",
-    icon: <AlertTriangle className="w-20 h-20 text-primary animate-pulse" />,
-    duration: 6000,
+    text: "Dans les profondeurs abyssales des mers du code, une ombre gigantesque s'éveille...",
+    icon: <Waves className="w-24 h-24 text-primary animate-pulse" />,
+    duration: 7000,
   },
   {
     id: 3,
-    text: "Le Kraken du Code a plongé le monde des développeurs dans les ténèbres.",
-    icon: <AlertTriangle className="w-20 h-20 text-destructive rotate-12" />,
-    duration: 6000,
+    text: "Le Kraken du Code, monstre légendaire aux huit tentacules, règne sur l'océan numérique.",
+    icon: <span className="text-8xl animate-pulse">🐙</span>,
+    duration: 7000,
   },
   {
     id: 4,
-    text: "Ses tentacules d'erreurs et de bugs paralysent les projets les plus ambitieux.",
-    icon: <Ship className="w-20 h-20 text-accent animate-float" />,
-    duration: 6000,
+    text: "Chaque tentacule représente un langage de programmation qu'il contrôle avec une poigne de fer.",
+    icon: <Code2 className="w-20 h-20 text-destructive rotate-12 animate-pulse" />,
+    duration: 7000,
   },
   {
     id: 5,
-    text: "Mais il existe une légende... celle d'un développeur qui maîtriserait tous les langages.",
-    icon: <Code2 className="w-20 h-20 text-primary" />,
+    text: "Ses erreurs et bugs paralysent les projets, plongeant les développeurs dans le désespoir.",
+    icon: <AlertTriangle className="w-24 h-24 text-destructive animate-bounce" />,
     duration: 7000,
   },
   {
     id: 6,
-    text: "En apprenant Python, JavaScript, HTML et CSS, tu forgeras les armes nécessaires.",
-    icon: <Zap className="w-20 h-20 text-accent animate-pulse" />,
+    text: "Mais une prophétie ancienne parle d'un héros qui maîtriserait les huit langages...",
+    icon: <Sword className="w-20 h-20 text-primary animate-pulse" />,
     duration: 7000,
   },
   {
     id: 7,
-    text: "Chaque niveau complété te rapprochera de la victoire finale.",
-    icon: <Trophy className="w-20 h-20 text-primary animate-bounce" />,
-    duration: 6000,
+    text: "HTML, JavaScript, PHP, SQL, Python, Java, C# et C++... Chaque langage maîtrisé affaiblit le Kraken.",
+    icon: <Zap className="w-20 h-20 text-accent animate-pulse" />,
+    duration: 8000,
   },
   {
     id: 8,
-    text: "Es-tu prêt à relever le défi et à devenir le développeur légendaire qui vaincra le Kraken ?",
+    text: "En complétant tous les niveaux, tu couperas ses tentacules un par un, libérant les mers du code.",
+    icon: <Trophy className="w-20 h-20 text-primary animate-bounce" />,
+    duration: 8000,
+  },
+  {
+    id: 9,
+    text: "L'aventure finale t'attend : un combat épique contre le cœur du Kraken lui-même.",
     icon: <Ship className="w-24 h-24 text-primary animate-float" />,
+    duration: 7000,
+  },
+  {
+    id: 10,
+    text: "Es-tu prêt à devenir le développeur légendaire qui libérera le monde du code ?",
+    icon: <span className="text-9xl animate-pulse">⚔️</span>,
     duration: 8000,
   },
 ];
@@ -140,17 +152,23 @@ export function GameIntro({ onComplete }: GameIntroProps) {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
-        <div className="text-center space-y-6 animate-fade-in">
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center overflow-hidden">
+        {/* Effet d'eau animé en arrière-plan */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.3),transparent_50%)] animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-blue-500/20 to-transparent animate-float" />
+        </div>
+        
+        <div className="text-center space-y-6 animate-fade-in relative z-10">
           <div className="mx-auto animate-spin-slow">
-            <Code2 className="w-24 h-24 text-primary" />
+            <span className="text-8xl animate-pulse">🐙</span>
           </div>
           <div className="space-y-2 animate-fade-in-delay">
-            <h2 className="text-2xl font-bold gradient-text">Crack'n Code</h2>
-            <p className="text-muted-foreground">Chargement...</p>
+            <h2 className="text-4xl font-bold gradient-text drop-shadow-lg">Crack'n Code</h2>
+            <p className="text-blue-200 font-medium">Navigation vers les mers du code...</p>
           </div>
-          <div className="w-64 h-1 bg-muted rounded-full overflow-hidden mx-auto animate-fade-in-delay-2">
-            <div className="h-full bg-gradient-primary rounded-full animate-progress-bar" />
+          <div className="w-64 h-2 bg-blue-900/50 rounded-full overflow-hidden mx-auto animate-fade-in-delay-2 border border-blue-500/30">
+            <div className="h-full bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 rounded-full animate-progress-bar" />
           </div>
         </div>
       </div>
@@ -160,12 +178,24 @@ export function GameIntro({ onComplete }: GameIntroProps) {
   const currentStoryStep = storySteps[currentStep];
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-background overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-secondary rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+      {/* Animated background - Effet océan */}
+      <div className="absolute inset-0">
+        {/* Vagues animées */}
+        <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-blue-600/40 via-blue-500/30 to-transparent animate-float" />
+        <div className="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-cyan-500/30 via-blue-400/20 to-transparent animate-float" style={{ animationDelay: "1s" }} />
+        
+        {/* Particules lumineuses (bulles) */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-cyan-400/20 rounded-full blur-2xl animate-pulse" />
+          <div className="absolute top-1/2 right-1/4 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+          <div className="absolute bottom-1/4 left-1/2 w-36 h-36 bg-cyan-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "2.5s" }} />
+        </div>
+        
+        {/* Lueur du Kraken */}
+        {currentStep >= 2 && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
+        )}
       </div>
 
       {/* Skip button */}
@@ -204,15 +234,15 @@ export function GameIntro({ onComplete }: GameIntroProps) {
           )}
 
           {/* Text */}
-          <p className="text-xl md:text-2xl font-medium text-foreground leading-relaxed animate-text-fade">
+          <p className="text-xl md:text-2xl font-medium text-white drop-shadow-lg leading-relaxed animate-text-fade px-4">
             {currentStoryStep.text}
           </p>
 
           {/* Continue hint */}
           {showContinueHint && !showPlayButton && (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground animate-fade-in-delay mt-4">
+            <div className="flex items-center justify-center gap-2 text-blue-200 animate-fade-in-delay mt-4">
               <ChevronRight className="w-5 h-5 animate-pulse" />
-              <span className="text-sm">Cliquer pour continuer</span>
+              <span className="text-sm font-medium">Cliquer pour continuer</span>
               <ChevronRight className="w-5 h-5 animate-pulse" />
             </div>
           )}
@@ -238,12 +268,12 @@ export function GameIntro({ onComplete }: GameIntroProps) {
             <Button
               size="lg"
               onClick={handlePlay}
-              className="bg-gradient-primary text-primary-foreground hover:opacity-90 px-8 py-6 text-lg font-bold shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 px-10 py-7 text-xl font-bold shadow-2xl hover:shadow-cyan-500/50 transition-all border-2 border-cyan-300/30"
             >
-              <Play className="w-6 h-6 mr-2" />
+              <Sword className="w-6 h-6 mr-2" />
               Embarquer pour l'aventure
             </Button>
-            <p className="text-center text-sm text-muted-foreground mt-4">
+            <p className="text-center text-sm text-blue-200 font-medium mt-4 drop-shadow-lg">
               Appuyez sur Entrée pour commencer
             </p>
           </div>

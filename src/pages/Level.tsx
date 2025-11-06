@@ -1,12 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { levels as levelsByLanguage } from "@/data/levels.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Zap } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout.tsx";
 import { Card } from "@/components/ui/card.tsx";
 import { QuizRunner } from "@/components/minigames/QuizRunner";
 import { CodeFillRunner } from "@/components/minigames/CodeFillRunner";
 import { HtmlBuilderRunner } from "@/components/minigames/HtmlBuilderRunner";
+import { useUserData } from "@/hooks/useUserData";
 
 type RouteParams = {
     id?: string; // language id (e.g., "python")
@@ -16,6 +17,7 @@ type RouteParams = {
 const Level = () => {
     const { id, levelId } = useParams<RouteParams>();
     const navigate = useNavigate();
+    const { data: user } = useUserData();
 
     if (!id) {
         return <div>Aucune langue spécifiée.</div>;
@@ -43,6 +45,7 @@ const Level = () => {
     }
 
     const minigame = level.minigame;
+    const xpPercentage = user ? (user.currentXP / user.xpToNextLevel) * 100 : 0;
 
     return (
         <AppLayout>
@@ -56,6 +59,32 @@ const Level = () => {
                     <ArrowLeft className="w-4 h-4" />
                     Retour
                 </Button>
+
+                {/* XP Bar - Dynamique avec les données utilisateur */}
+                {user && (
+                    <Card className="p-4 border-border bg-gradient-card">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-primary/20">
+                                <Zap className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Niveau {user.level}</span>
+                                    <span className="font-bold text-foreground">
+                                        {user.currentXP} / {user.xpToNextLevel} XP
+                                    </span>
+                                </div>
+                                <div className="xp-bar">
+                                    <div
+                                        className="xp-bar-fill transition-all duration-500 ease-out"
+                                        style={{ width: `${xpPercentage}%` }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                )}
+
                 <Card className="p-4 border-border bg-card transition-all">
                     <div className="flex items-start gap-4">
                         {/* Level Number Badge */}

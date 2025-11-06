@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { LanguageCarousel } from "@/components/language/LanguageCarousel";
-import { Code2, Sparkles } from "lucide-react";
+import { Code2, Sparkles, Skull } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { LoginPrompt } from "@/components/auth/LoginPrompt";
 import { useLanguagesData } from "@/hooks/useLanguagesData";
+import { getLanguageLevelsCount } from "@/data/languages";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -16,7 +17,8 @@ const Home = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   // Utilise le hook React Query pour récupérer les langages avec actualisation automatique
-  const { data: languages = [] } = useLanguagesData(!!user);
+  // Toujours activé pour afficher les langages même si pas connecté
+  const { data: languages = [], isLoading } = useLanguagesData(true);
 
   return (
     <AppLayout>
@@ -71,17 +73,74 @@ const Home = () => {
             </h2>
           </div>
 
-          <LanguageCarousel
-            languages={languages}
-            onLanguageSelect={(language) => {
-              if (!user) {
-                setShowLoginPrompt(true);
-                return;
-              }
-              navigate(`/language/${language.id}`);
-            }}
-          />
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Chargement des langages...</div>
+          ) : languages.length > 0 ? (
+            <LanguageCarousel
+              languages={languages}
+              onLanguageSelect={(language) => {
+                if (!user) {
+                  setShowLoginPrompt(true);
+                  return;
+                }
+                navigate(`/language/${language.id}`);
+              }}
+            />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">Aucun langage disponible</div>
+          )}
         </div>
+
+        {/* Boss Battle Section */}
+        {user && (
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <Skull className="w-6 h-6 text-destructive" />
+              <h2 className="text-2xl font-bold text-foreground">
+                Combat Final
+              </h2>
+            </div>
+            <Card className="p-6 bg-gradient-to-br from-destructive/10 to-card border-border">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex-1">
+                  <div className="text-6xl mb-4">🐙</div>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">Le Kraken du Code</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Affrontez le boss final ! Complétez 100% de tous les langages pour débloquer le combat épique.
+                  </p>
+                  {languages.every((lang) => {
+                    const total = getLanguageLevelsCount(lang.id);
+                    return total > 0 && lang.completedLevels >= total;
+                  }) ? (
+                    <div className="flex items-center gap-2 text-success font-medium">
+                      <span>✓</span>
+                      <span>Combat débloqué !</span>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      Progression : {languages.filter((lang) => {
+                        const total = getLanguageLevelsCount(lang.id);
+                        return total > 0 && lang.completedLevels >= total;
+                      }).length} / {languages.length} langages complétés
+                    </div>
+                  )}
+                </div>
+                <Button
+                  onClick={() => navigate("/boss")}
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-destructive to-red-600 hover:opacity-90"
+                  disabled={!languages.every((lang) => {
+                    const total = getLanguageLevelsCount(lang.id);
+                    return total > 0 && lang.completedLevels >= total;
+                  })}
+                >
+                  <Skull className="w-5 h-5" />
+                  Combattre le Kraken
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
       <LoginPrompt open={showLoginPrompt} onOpenChange={setShowLoginPrompt} />
     </AppLayout>
