@@ -467,15 +467,17 @@ app.get("/api/leaderboard", async (req, res) => {
 		const persMap = new Map(personalisations.map(p => [p.id_user, p]));
 		
 		const LEVEL_SIZE = 1000;
-		const leaderboard = topUsers.map((user, index) => {
-			const level = Math.floor(user.xp_global / LEVEL_SIZE) + 1;
+		// Filtre les utilisateurs valides et construit le leaderboard
+		const validUsers = topUsers.filter(user => user.nom && user.prenom);
+		const leaderboard = validUsers.map((user, index) => {
+			const level = Math.floor((user.xp_global || 0) / LEVEL_SIZE) + 1;
 			const pers = persMap.get(user.id_google);
 			return {
 				rank: index + 1,
 				id: user.id_google,
-				username: `${user.prenom} ${user.nom}`,
+				username: `${user.prenom || ""} ${user.nom || ""}`.trim() || "Joueur anonyme",
 				level,
-				xp: user.xp_global,
+				xp: user.xp_global || 0,
 				avatarOptions: pers ? {
 					avatarStyle: "Circle",
 					topType: pers.hair || "ShortHairShortFlat",
