@@ -3,6 +3,7 @@ import { X, MessageCircle, ChevronDown, ChevronUp, Sparkles, Minimize2, Maximize
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CracknMessage } from "./CracknCompanion";
+import { toast } from "sonner";
 
 // Mapping des émotions vers les images
 const getEmotionImage = (emotion: string): string => {
@@ -71,6 +72,19 @@ export function CracknChat({
     }
   }, [hasInitialized]);
 
+  // Ferme automatiquement les notifications toast quand on ouvre le chat
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      // Ferme toutes les notifications toast après un court délai
+      // pour laisser le temps à l'utilisateur de voir qu'un message est arrivé
+      const timer = setTimeout(() => {
+        // Ferme toutes les notifications toast de sonner
+        toast.dismiss();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isMinimized]);
+
   // Ajoute les nouveaux messages à l'historique
   useEffect(() => {
     messages.forEach(msg => {
@@ -96,16 +110,16 @@ export function CracknChat({
     });
   }, [messages, onAddMessage, isMinimized]);
 
-  // Scroll automatique vers le bas quand un nouveau message arrive
+  // Scroll automatique vers le haut (nouveaux messages) quand un nouveau message arrive
   useEffect(() => {
     if (isOpen && scrollViewportRef.current) {
       const viewport = scrollViewportRef.current;
-      // Scroll seulement si on est déjà près du bas (pour ne pas interrompre la lecture)
-      const isNearBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 150;
-      if (isNearBottom || isAtBottom) {
+      // Scroll seulement si on est déjà près du haut (pour ne pas interrompre la lecture)
+      const isNearTop = viewport.scrollTop < 150;
+      if (isNearTop || isAtBottom) {
         setTimeout(() => {
           viewport.scrollTo({
-            top: viewport.scrollHeight,
+            top: 0,
             behavior: "smooth"
           });
           setIsAtBottom(true);
@@ -128,12 +142,14 @@ export function CracknChat({
         const scrollTop = viewport.scrollTop;
         const scrollHeight = viewport.scrollHeight;
         const clientHeight = viewport.clientHeight;
+        // Avec l'ordre inversé, le haut contient les nouveaux messages
         const isScrolledFromTop = scrollTop > 100;
         const isScrolledFromBottom = scrollHeight - scrollTop - clientHeight > 150;
         
+        // Inverser : scrollToTop va vers le haut (nouveaux messages), scrollToBottom vers le bas (anciens)
         setShowScrollToTop(isScrolledFromTop);
         setShowScrollToBottom(isScrolledFromBottom);
-        setIsAtBottom(!isScrolledFromBottom);
+        setIsAtBottom(scrollTop < 100); // Près du haut = à jour avec les nouveaux messages
       }
     };
 
@@ -146,24 +162,25 @@ export function CracknChat({
     };
   }, [isOpen, messageHistory]);
 
-  // Fonction pour remonter en haut
+  // Fonction pour remonter en haut (nouveaux messages)
   const scrollToTop = useCallback(() => {
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTo({
         top: 0,
         behavior: "smooth"
       });
+      setIsAtBottom(true);
     }
   }, []);
 
-  // Fonction pour descendre en bas
+  // Fonction pour descendre en bas (anciens messages)
   const scrollToBottom = useCallback(() => {
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTo({
         top: scrollViewportRef.current.scrollHeight,
         behavior: "smooth"
       });
-      setIsAtBottom(true);
+      setIsAtBottom(false);
     }
   }, []);
 
@@ -172,11 +189,13 @@ export function CracknChat({
     "bottom-left": "bottom-6 left-6",
   };
 
+  // Tri inverse : dernier message en haut (timestamp décroissant)
   const sortedMessages = [...messageHistory].sort((a, b) => 
-    (a.timestamp || 0) - (b.timestamp || 0)
+    (b.timestamp || 0) - (a.timestamp || 0)
   );
 
-  const latestMessage = sortedMessages[sortedMessages.length - 1];
+  // Le dernier message est maintenant le premier dans la liste triée
+  const latestMessage = sortedMessages[0];
   const latestEmotion = latestMessage?.emotion || "happy";
   const latestEmotionImage = getEmotionImage(latestEmotion);
 
@@ -214,11 +233,12 @@ export function CracknChat({
     }
   };
 
-  // Groupe les messages par date
+  // Groupe les messages par date (ordre inversé : nouveaux en premier)
   const groupedMessages = useMemo(() => {
     const groups: { date: string; messages: (CracknMessage & { timestamp?: number })[] }[] = [];
     let currentDate = "";
     
+    // Parcourir les messages triés par timestamp décroissant (nouveaux en premier)
     sortedMessages.forEach((msg) => {
       if (!msg.timestamp) return;
       
@@ -226,10 +246,12 @@ export function CracknChat({
       
       if (dateKey !== currentDate) {
         currentDate = dateKey;
-        groups.push({ date: dateKey, messages: [] });
+        // Ajouter le nouveau groupe au début pour garder l'ordre chronologique inversé
+        groups.unshift({ date: dateKey, messages: [] });
       }
       
-      groups[groups.length - 1].messages.push(msg);
+      // Ajouter le message au premier groupe (le plus récent)
+      groups[0].messages.push(msg);
     });
     
     return groups;
@@ -247,7 +269,7 @@ export function CracknChat({
       <div className={`fixed ${positionClasses[position]} z-50 animate-fade-in`}>
         <Button
           onClick={() => setIsMinimized(false)}
-          className="rounded-full w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-2xl border-4 border-white/20 animate-float"
+          className="rounded-full w-16 h-16 bg-gradient-to-br from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-2xl border-4 border-primary-foreground/20 animate-float"
         >
           <div className="flex flex-col items-center gap-1 relative">
             <img 
@@ -256,7 +278,7 @@ export function CracknChat({
               className="w-10 h-10 object-contain"
             />
             {sortedMessages.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold">
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full text-xs flex items-center justify-center text-destructive-foreground font-bold">
                 {sortedMessages.length > 9 ? "9+" : sortedMessages.length}
               </span>
             )}
@@ -268,11 +290,11 @@ export function CracknChat({
 
   return (
     <div className={`fixed ${positionClasses[position]} z-50 animate-slide-up`}>
-      <Card className="w-96 h-[600px] flex flex-col bg-gradient-to-br from-cyan-50/95 to-blue-50/95 dark:from-cyan-950/95 dark:to-blue-950/95 border-2 border-cyan-300/50 shadow-2xl overflow-hidden">
+      <Card className="w-96 h-[600px] flex flex-col bg-gradient-to-br from-card/95 to-card/95 border-2 border-primary/30 shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-b border-cyan-300/30 flex items-center justify-between">
+        <div className="p-4 bg-gradient-to-r from-primary/20 to-accent/20 border-b border-primary/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/30 animate-float overflow-hidden">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg border-2 border-primary-foreground/30 animate-float overflow-hidden">
               <img 
                 src={latestEmotionImage} 
                 alt={latestEmotion}
@@ -281,8 +303,8 @@ export function CracknChat({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-cyan-700 dark:text-cyan-300">Crack'n</span>
-                <MessageCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                <span className="font-bold text-primary">Crack'n</span>
+                <MessageCircle className="w-4 h-4 text-primary" />
               </div>
               <p className="text-xs text-muted-foreground">
                 {sortedMessages.length} {sortedMessages.length > 1 ? "messages" : "message"}
@@ -333,7 +355,7 @@ export function CracknChat({
             >
               {sortedMessages.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Sparkles className="w-8 h-8 mx-auto mb-2 text-cyan-400" />
+                  <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary" />
                   <p className="text-sm">Aucun message pour le moment</p>
                   <p className="text-xs mt-1">Crack'n apparaîtra ici quand il aura quelque chose à te dire !</p>
                 </div>
@@ -356,27 +378,28 @@ export function CracknChat({
                       const emotion = msg.emotion || "happy";
                       const emotionImage = getEmotionImage(emotion);
                       const isRecent = isRecentMessage(msg.timestamp);
-                      const isLatest = groupIndex === groupedMessages.length - 1 && msgIndex === group.messages.length - 1;
+                      // Le dernier message est maintenant le premier dans le premier groupe
+                      const isLatest = groupIndex === 0 && msgIndex === 0;
                       
                       return (
                         <div
                           key={msg.id}
                           className={`flex items-start gap-3 p-3 rounded-lg transition-all relative ${
                             isLatest 
-                              ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-2 border-cyan-400/40 animate-fade-in shadow-md" 
+                              ? "bg-gradient-to-r from-primary/20 to-accent/20 border-2 border-primary/40 animate-fade-in shadow-md" 
                               : isRecent
-                              ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/20"
-                              : "bg-background/50 border border-border/50"
+                              ? "bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20"
+                              : "bg-card/50 border border-border/50"
                           }`}
                         >
                           {/* Indicateur de nouveau message */}
                           {isRecent && !isLatest && (
-                            <div className="absolute -left-2 top-3 w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+                            <div className="absolute -left-2 top-3 w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                           )}
                           
                           <div className="flex-shrink-0">
-                            <div className={`w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30 overflow-hidden ${
-                              isRecent ? "ring-2 ring-cyan-400/50" : ""
+                            <div className={`w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-md border border-primary-foreground/30 overflow-hidden ${
+                              isRecent ? "ring-2 ring-primary/50" : ""
                             }`}>
                               <img 
                                 src={emotionImage} 
@@ -387,14 +410,14 @@ export function CracknChat({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Crack'n</span>
+                              <span className="text-xs font-bold text-primary">Crack'n</span>
                               {msg.timestamp && (
-                                <span className={`text-xs ${isRecent ? "text-cyan-600 dark:text-cyan-400 font-medium" : "text-muted-foreground"}`}>
+                                <span className={`text-xs ${isRecent ? "text-primary font-medium" : "text-muted-foreground"}`}>
                                   {formatTime(msg.timestamp)}
                                 </span>
                               )}
                               {isRecent && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-bold">
                                   Nouveau
                                 </span>
                               )}
@@ -414,25 +437,25 @@ export function CracknChat({
               <div ref={messagesEndRef} />
             </div>
             
-            {/* Bouton pour remonter en haut */}
+            {/* Bouton pour remonter en haut (nouveaux messages) */}
             {showScrollToTop && (
               <Button
                 onClick={scrollToTop}
                 size="sm"
-                className="absolute top-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg z-10"
-                title="Remonter en haut"
+                className="absolute top-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg z-10"
+                title="Voir les nouveaux messages"
               >
                 <ArrowUp className="w-4 h-4" />
               </Button>
             )}
             
-            {/* Bouton pour descendre en bas */}
+            {/* Bouton pour descendre en bas (anciens messages) */}
             {showScrollToBottom && (
               <Button
                 onClick={scrollToBottom}
                 size="sm"
-                className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg z-10"
-                title="Voir les derniers messages"
+                className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg z-10"
+                title="Voir les anciens messages"
               >
                 <ArrowDown className="w-4 h-4" />
               </Button>
@@ -442,10 +465,10 @@ export function CracknChat({
 
         {/* Preview du dernier message si fermé */}
         {!isOpen && latestMessage && (
-          <div className="p-4 border-t border-cyan-300/30">
+          <div className="p-4 border-t border-primary/30">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30 overflow-hidden">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-md border border-primary-foreground/30 overflow-hidden">
                   <img 
                     src={latestEmotionImage} 
                     alt={latestEmotion}
@@ -455,7 +478,7 @@ export function CracknChat({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Dernier message</span>
+                  <span className="text-xs font-bold text-primary">Dernier message</span>
                   {latestMessage.timestamp && (
                     <span className="text-xs text-muted-foreground">
                       {formatTime(latestMessage.timestamp)}

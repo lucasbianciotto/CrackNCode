@@ -119,6 +119,147 @@ export const phase1Challenges: Record<string, Minigame[]> = {
   ],
 };
 
+// Nouveaux types de défis originaux pour le boss battle
+export const originalBossChallenges = {
+  // Défis de reconnaissance de pattern
+  codePattern: [
+    {
+      id: "pattern-1",
+      pattern: "for (let i = 0; i < 3; i++) {\n  console.log(i);\n}\n// Output: 0, 1, 2\n\nfor (let i = 0; i < 5; i++) {\n  console.log(i);\n}\n// Output: ?",
+      options: [
+        "0, 1, 2, 3, 4",
+        "1, 2, 3, 4, 5",
+        "0, 1, 2, 3",
+        "5, 4, 3, 2, 1"
+      ],
+      correctIndex: 0,
+      explanation: "La boucle commence à 0 et s'arrête avant 5, donc elle affiche 0, 1, 2, 3, 4"
+    },
+    {
+      id: "pattern-2",
+      pattern: "const arr = [1, 2, 3];\narr.map(x => x * 2); // [2, 4, 6]\n\nconst arr2 = [2, 4, 6];\narr2.map(x => ?); // [4, 8, 12]",
+      options: [
+        "x * 2",
+        "x + 2",
+        "x ** 2",
+        "x / 2"
+      ],
+      correctIndex: 0,
+      explanation: "Le pattern est de multiplier chaque élément par 2"
+    }
+  ],
+  
+  // Défis de chasse aux bugs
+  bugHunter: [
+    {
+      id: "bug-1",
+      code: `function calculateTotal(items) {
+  let total = 0;
+  for (let i = 0; i <= items.length; i++) {
+    total += items[i].price;
+  }
+  return total;
+}`,
+      bugs: [
+        { line: 3, description: "Index out of bounds: i <= items.length devrait être i < items.length" }
+      ],
+      correctBugs: [3]
+    },
+    {
+      id: "bug-2",
+      code: `function findMax(numbers) {
+  let max = 0;
+  for (let num of numbers) {
+    if (num > max) {
+      max = num;
+    }
+  }
+  return max;
+}`,
+      bugs: [
+        { line: 2, description: "Initialisation incorrecte: max devrait être -Infinity ou numbers[0] pour gérer les nombres négatifs" }
+      ],
+      correctBugs: [2]
+    },
+    {
+      id: "bug-3",
+      code: `function divide(a, b) {
+  return a / b;
+}
+
+function safeDivide(a, b) {
+  if (b = 0) {
+    return null;
+  }
+  return divide(a, b);
+}`,
+      bugs: [
+        { line: 5, description: "Erreur d'assignation: b = 0 devrait être b === 0" }
+      ],
+      correctBugs: [5]
+    }
+  ],
+  
+  // Défis de frappe rapide
+  speedTyping: [
+    {
+      id: "typing-1",
+      targetCode: "const greet = (name) => `Hello, ${name}!`;",
+      description: "Tape cette fonction arrow ES6"
+    },
+    {
+      id: "typing-2",
+      targetCode: "const sum = arr => arr.reduce((a, b) => a + b, 0);",
+      description: "Tape cette fonction de somme avec reduce"
+    },
+    {
+      id: "typing-3",
+      targetCode: "const isEven = n => n % 2 === 0;",
+      description: "Tape cette fonction de vérification paire"
+    }
+  ],
+  
+  // Défis de puzzle logique
+  logicPuzzle: [
+    {
+      id: "logic-1",
+      question: "Quelle est la complexité temporelle de cette fonction ?\n\nfunction search(arr, target) {\n  for (let i = 0; i < arr.length; i++) {\n    if (arr[i] === target) return i;\n  }\n  return -1;\n}",
+      options: [
+        "O(1) - Temps constant",
+        "O(log n) - Logarithmique",
+        "O(n) - Linéaire",
+        "O(n²) - Quadratique"
+      ],
+      correctIndex: 2,
+      explanation: "La fonction parcourt chaque élément du tableau une fois, donc O(n)"
+    },
+    {
+      id: "logic-2",
+      question: "Quel est le résultat de :\n\nconst x = [1, 2, 3];\nconst y = x;\ny.push(4);\nconsole.log(x);",
+      options: [
+        "[1, 2, 3]",
+        "[1, 2, 3, 4]",
+        "[4, 3, 2, 1]",
+        "Erreur"
+      ],
+      correctIndex: 1,
+      explanation: "Les tableaux sont passés par référence, donc x et y pointent vers le même tableau"
+    },
+    {
+      id: "logic-3",
+      question: "Quelle méthode JavaScript retourne un nouveau tableau sans modifier l'original ?",
+      options: [
+        "push()",
+        "pop()",
+        "map()",
+        "sort()"
+      ],
+      correctIndex: 2,
+      explanation: "map() retourne un nouveau tableau, les autres modifient le tableau original"
+    }
+  ]
+};
+
 // Défis Phase 2 : Multi-langages (débogage)
 export const phase2Challenges: Array<{
   id: string;

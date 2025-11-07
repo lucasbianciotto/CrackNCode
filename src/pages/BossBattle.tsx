@@ -15,6 +15,11 @@ import { QuizRunner } from "@/components/minigames/QuizRunner";
 import { CodeFillRunner } from "@/components/minigames/CodeFillRunner";
 import { HtmlBuilderRunner } from "@/components/minigames/HtmlBuilderRunner";
 import { MultiLanguageChallenge } from "@/components/boss/MultiLanguageChallenge";
+import { CodePatternChallenge } from "@/components/boss/CodePatternChallenge";
+import { BugHunterChallenge } from "@/components/boss/BugHunterChallenge";
+import { SpeedTypingChallenge } from "@/components/boss/SpeedTypingChallenge";
+import { LogicPuzzleChallenge } from "@/components/boss/LogicPuzzleChallenge";
+import { originalBossChallenges } from "@/data/bossChallenges";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +45,7 @@ export default function BossBattle() {
   const [isChallengeActive, setIsChallengeActive] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState<any>(null);
   const [currentLanguageId, setCurrentLanguageId] = useState<string | null>(null);
+  const [challengeType, setChallengeType] = useState<"classic" | "pattern" | "bug" | "typing" | "logic">("classic");
 
   // Vérifier le déblocage (100% des 8 langages)
   const isUnlocked = useCallback(() => {
@@ -112,7 +118,7 @@ export default function BossBattle() {
     launchPhase1Challenge();
   };
 
-  // Lancer un défi Phase 1 (tentacules)
+  // Lancer un défi Phase 1 (tentacules) - avec variété de défis
   const launchPhase1Challenge = useCallback(() => {
     const remainingLanguages = languages.filter(
       (lang) => !completedTentacles.has(lang.id)
@@ -125,6 +131,31 @@ export default function BossBattle() {
       return;
     }
 
+    // 60% de chance d'utiliser un défi original, 40% pour les défis classiques
+    const useOriginal = Math.random() < 0.6;
+    
+    if (useOriginal) {
+      // Choisir un type de défi original aléatoire
+      const challengeTypes = [
+        { type: "pattern" as const, key: "codePattern" as const },
+        { type: "bug" as const, key: "bugHunter" as const },
+        { type: "typing" as const, key: "speedTyping" as const },
+        { type: "logic" as const, key: "logicPuzzle" as const }
+      ];
+      const randomChallengeType = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
+      const challenges = originalBossChallenges[randomChallengeType.key];
+      
+      if (challenges && challenges.length > 0) {
+        const challenge = challenges[Math.floor(Math.random() * challenges.length)];
+        setChallengeType(randomChallengeType.type);
+        setCurrentChallenge(challenge);
+        setIsChallengeActive(true);
+        setFailures(0);
+        return;
+      }
+    }
+
+    // Défi classique par langage
     const randomLang = remainingLanguages[Math.floor(Math.random() * remainingLanguages.length)];
     const challenges = phase1Challenges[randomLang.id];
     
@@ -139,6 +170,7 @@ export default function BossBattle() {
 
     const challenge = challenges[Math.floor(Math.random() * challenges.length)];
     setCurrentLanguageId(randomLang.id);
+    setChallengeType("classic");
     setCurrentChallenge(challenge);
     setIsChallengeActive(true);
     setFailures(0);
@@ -162,12 +194,23 @@ export default function BossBattle() {
     console.log("handleChallengeSuccess called", { phase, currentLanguageId, currentBoss: currentBoss?.currentHP });
     setIsChallengeActive(false);
 
-    if (phase === "phase1" && currentLanguageId) {
-      // Phase 1 : couper un tentacule
-      setCompletedTentacles((prev) => new Set([...prev, currentLanguageId!]));
-      console.log("Calling damageBoss with", PHASE1_DAMAGE);
-      damageBoss(PHASE1_DAMAGE);
-      toast.success(`Tentacule ${languages.find(l => l.id === currentLanguageId)?.name} coupé ! -${PHASE1_DAMAGE} HP`);
+    if (phase === "phase1") {
+      if (challengeType === "classic" && currentLanguageId) {
+        // Défi classique : couper un tentacule spécifique
+        setCompletedTentacles((prev) => new Set([...prev, currentLanguageId!]));
+        damageBoss(PHASE1_DAMAGE);
+        toast.success(`Tentacule ${languages.find(l => l.id === currentLanguageId)?.name} coupé ! -${PHASE1_DAMAGE} HP`);
+      } else {
+        // Défi original : dégâts généraux
+        damageBoss(PHASE1_DAMAGE);
+        const challengeNames = {
+          pattern: "Pattern reconnu",
+          bug: "Bugs éliminés",
+          typing: "Code tapé",
+          logic: "Puzzle résolu"
+        };
+        toast.success(`${challengeNames[challengeType]} ! -${PHASE1_DAMAGE} HP`);
+      }
       setTimeout(() => launchPhase1Challenge(), 1500);
     } else if (phase === "phase2") {
       // Phase 2 : dégâts au cœur
@@ -178,7 +221,7 @@ export default function BossBattle() {
     } else {
       console.warn("handleChallengeSuccess: phase or currentLanguageId not set", { phase, currentLanguageId });
     }
-  }, [phase, currentLanguageId, damageBoss, launchPhase1Challenge, launchPhase2Challenge, currentBoss]);
+  }, [phase, currentLanguageId, challengeType, damageBoss, launchPhase1Challenge, launchPhase2Challenge, currentBoss]);
 
   // Gérer l'échec d'un défi
   const handleChallengeFailure = useCallback(() => {
@@ -323,7 +366,7 @@ export default function BossBattle() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
@@ -338,9 +381,9 @@ export default function BossBattle() {
           )}
         </div>
 
-        {/* Boss HP Bar */}
+        {/* Boss HP Bar - Sticky en haut */}
         {currentBoss && (isPhase1 || isPhase2) && (
-          <Card className="p-6 border-border bg-gradient-to-br from-destructive/10 to-card">
+          <Card className="p-4 border-border bg-gradient-to-br from-destructive/10 to-card sticky top-0 z-10">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 flex items-center justify-center">
                 <img 
@@ -380,9 +423,9 @@ export default function BossBattle() {
           </Card>
         )}
 
-        {/* Timer */}
+        {/* Timer - Compact */}
         {(isPhase1 || isPhase2) && (
-          <Card className="p-4 border-border bg-gradient-card">
+          <Card className="p-3 border-border bg-gradient-card">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-accent" />
@@ -398,9 +441,9 @@ export default function BossBattle() {
           </Card>
         )}
 
-        {/* Phase 1 Progress */}
+        {/* Phase 1 Progress - Compact */}
         {isPhase1 && (
-          <Card className="p-4 border-border">
+          <Card className="p-3 border-border">
             <div className="flex items-center gap-2 mb-3">
               <Skull className="w-5 h-5 text-primary" />
               <span className="font-bold text-foreground">Phase 1 : Les Tentacules</span>
@@ -429,9 +472,9 @@ export default function BossBattle() {
           </Card>
         )}
 
-        {/* Challenge Area */}
+        {/* Challenge Area - Scroll interne si nécessaire */}
         {isChallengeActive && currentChallenge && (
-          <Card className="p-6 border-border">
+          <Card className="p-4 border-border max-h-[calc(100vh-32rem)] overflow-y-auto">
             {/* Boutons de cheat - À RETIRER EN PRODUCTION */}
             <div className="mb-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
               <div className="flex items-center justify-between">
@@ -473,30 +516,67 @@ export default function BossBattle() {
                 timeLimit={30}
               />
             ) : (
-              // Phase 1 : Mini-jeux classiques
+              // Phase 1 : Défis variés (classiques + originaux)
               <>
-                {currentChallenge.type === "quiz" && (
-                  <QuizRunner
-                    quiz={currentChallenge}
-                    languageId={currentLanguageId || ""}
-                    levelKey="boss-challenge"
+                {challengeType === "pattern" && (
+                  <CodePatternChallenge
+                    challenge={currentChallenge}
+                    onSuccess={handleChallengeSuccess}
+                    onFailure={handleChallengeFailure}
+                    timeLimit={15}
                   />
                 )}
-                {currentChallenge.type === "code-fill" && (
-                  <CodeFillRunner
-                    game={currentChallenge}
-                    languageId={currentLanguageId || ""}
-                    levelKey="boss-challenge"
+                {challengeType === "bug" && (
+                  <BugHunterChallenge
+                    challenge={currentChallenge}
+                    onSuccess={handleChallengeSuccess}
+                    onFailure={handleChallengeFailure}
+                    timeLimit={20}
                   />
                 )}
-                {currentChallenge.type === "html-builder" && (
-                  <HtmlBuilderRunner
-                    game={currentChallenge}
-                    languageId={currentLanguageId || ""}
-                    levelNumber={1}
-                    xpReward={0}
-                    levelTitle="Défi du Kraken"
+                {challengeType === "typing" && (
+                  <SpeedTypingChallenge
+                    challenge={currentChallenge}
+                    onSuccess={handleChallengeSuccess}
+                    onFailure={handleChallengeFailure}
+                    timeLimit={30}
                   />
+                )}
+                {challengeType === "logic" && (
+                  <LogicPuzzleChallenge
+                    challenge={currentChallenge}
+                    onSuccess={handleChallengeSuccess}
+                    onFailure={handleChallengeFailure}
+                    timeLimit={25}
+                  />
+                )}
+                {challengeType === "classic" && (
+                  <>
+                    {currentChallenge.type === "quiz" && (
+                      <QuizRunner
+                        quiz={currentChallenge}
+                        languageId={currentLanguageId || ""}
+                        levelKey="boss-challenge"
+                        onSuccess={handleChallengeSuccess}
+                      />
+                    )}
+                    {currentChallenge.type === "code-fill" && (
+                      <CodeFillRunner
+                        game={currentChallenge}
+                        languageId={currentLanguageId || ""}
+                        levelKey="boss-challenge"
+                        onSuccess={handleChallengeSuccess}
+                      />
+                    )}
+                    {currentChallenge.type === "html-builder" && (
+                      <HtmlBuilderRunner
+                        game={currentChallenge}
+                        languageId={currentLanguageId || ""}
+                        levelKey="boss-challenge"
+                        onSuccess={handleChallengeSuccess}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}

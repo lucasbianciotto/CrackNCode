@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, Trash2, Unlock, AlertTriangle, Zap, Trophy, Languages, MessageCircle, Wand2,
-  Bell, Award, Film, User, Gamepad2, Settings, Sparkles, Plus, Minus, Play, X
+  Bell, Award, Film, User, Gamepad2, Settings, Sparkles, Plus, Minus, Play, X, Eye, EyeOff, Lock
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -25,12 +25,19 @@ import { isCheatModeEnabled, toggleCheatMode } from "@/utils/cheatMode";
 import { addMessageToHistory } from "@/components/storytelling/CracknChat";
 import { CracknMessage } from "@/components/storytelling/CracknCompanion";
 import { CRACKN_DIALOGUES } from "@/data/storytelling";
+import { getSuccessDefinition } from "@/data/achievements";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
+const ADMIN_PASSWORD = "admin"; // Mot de passe admin pour la présentation
 
 export default function Admin() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [completingLanguage, setCompletingLanguage] = useState<string | null>(null);
@@ -45,6 +52,28 @@ export default function Admin() {
   const [notificationType, setNotificationType] = useState<"success" | "error" | "info" | "warning">("success");
   const [selectedLanguage, setSelectedLanguage] = useState("html");
   const [selectedLevel, setSelectedLevel] = useState(1);
+
+  // Vérifier si l'utilisateur est déjà authentifié (session)
+  useEffect(() => {
+    const adminAuth = sessionStorage.getItem("admin_authenticated");
+    if (adminAuth === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      sessionStorage.setItem("admin_authenticated", "true");
+      setPasswordError(false);
+      toast.success("Accès admin autorisé !");
+    } else {
+      setPasswordError(true);
+      toast.error("Mot de passe incorrect !");
+      setPassword("");
+    }
+  };
 
   useEffect(() => {
     setCheatMode(isCheatModeEnabled());
@@ -203,13 +232,14 @@ export default function Admin() {
 
       if (res.ok) {
         const data = await res.json();
+        const def = getSuccessDefinition(imageToAward);
         if (data.wasAlreadyUnlocked) {
-          toast.info(`Succès déjà débloqué : ${imageToAward}`);
+          toast.info(`Succès déjà débloqué : ${def?.titre || imageToAward}`);
         } else {
-          toast.success(`🎉 Succès débloqué ! ${imageToAward}`);
-          // Déclenche aussi une notification de succès
+          toast.success(`🎉 Succès débloqué ! ${def?.titre || imageToAward}`);
+          // Déclenche aussi une notification de succès avec le titre
           setTimeout(() => {
-            toast.success(`🎉 Nouveau succès débloqué ! ${imageToAward}`);
+            toast.success(`🎉 Nouveau succès débloqué ! ${def?.titre || imageToAward}`);
           }, 500);
         }
       } else {
@@ -327,6 +357,78 @@ export default function Admin() {
     window.location.href = "/?intro=true";
   };
 
+  // Écran de connexion admin
+  if (!isAuthenticated) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+          <Card className="p-8 max-w-md w-full border-primary/50 bg-primary/5">
+            <div className="text-center space-y-6">
+              <div className="flex justify-center">
+                <div className="p-4 rounded-full bg-primary/20 border-2 border-primary/50">
+                  <Lock className="w-12 h-12 text-primary" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-2">Accès Admin</h1>
+                <p className="text-sm text-muted-foreground">
+                  Veuillez entrer le mot de passe administrateur
+                </p>
+              </div>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">Mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="admin-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setPasswordError(false);
+                      }}
+                      placeholder="Entrez le mot de passe"
+                      className={passwordError ? "border-destructive" : ""}
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {passwordError && (
+                    <p className="text-sm text-destructive">Mot de passe incorrect</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full" size="lg">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Se connecter
+                </Button>
+              </form>
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="w-full"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Retour à l'accueil
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
+
   if (!user) {
     return (
       <AppLayout>
@@ -344,10 +446,10 @@ export default function Admin() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Retour
-          </Button>
+        <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </Button>
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-muted-foreground" />
             <h1 className="text-2xl font-bold text-foreground">Panel Admin - Démonstration</h1>
@@ -548,7 +650,7 @@ export default function Admin() {
           {/* Tab Crack'n */}
           <TabsContent value="crackn" className="space-y-4">
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4">
                 <MessageCircle className="w-6 h-6 text-primary" />
                 <h3 className="text-lg font-bold text-foreground">Messages de Crack'n</h3>
               </div>
@@ -583,7 +685,7 @@ export default function Admin() {
                   Envoyer le message
                 </Button>
                 <Separator />
-                <div>
+              <div>
                   <Label>Messages rapides</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <Button size="sm" onClick={() => triggerQuickCracknMessage("welcome")} variant="outline">Bienvenue</Button>
@@ -704,37 +806,37 @@ export default function Admin() {
                 <div className="flex items-center gap-3 mb-4">
                   <Trash2 className="w-6 h-6 text-destructive" />
                   <h3 className="text-lg font-bold text-foreground">Reset Utilisateur</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
                   Supprime toutes les données : progression, XP, succès, activités, avatar.
-                </p>
-                <Button
-                  onClick={handleReset}
-                  disabled={isResetting}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  {isResetting ? "Reset en cours..." : "Reset Complet"}
-                </Button>
-              </Card>
+            </p>
+            <Button
+              onClick={handleReset}
+              disabled={isResetting}
+              variant="destructive"
+              className="w-full"
+            >
+              {isResetting ? "Reset en cours..." : "Reset Complet"}
+            </Button>
+          </Card>
 
               <Card className="p-6 border-green-500/50">
-                <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4">
                   <Unlock className="w-6 h-6 text-green-500" />
-                  <h3 className="text-lg font-bold text-foreground">Débloquer Tout</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Complète tous les langages à 100% et débloque le combat contre le Kraken.
-                </p>
-                <Button
-                  onClick={handleUnlockAll}
-                  disabled={isUnlocking}
-                  className="w-full bg-green-500 hover:bg-green-600"
-                >
-                  {isUnlocking ? "Déblocage en cours..." : "Débloquer Tout à 100%"}
-                </Button>
-              </Card>
+                <h3 className="text-lg font-bold text-foreground">Débloquer Tout</h3>
             </div>
+            <p className="text-sm text-muted-foreground mb-4">
+                  Complète tous les langages à 100% et débloque le combat contre le Kraken.
+            </p>
+            <Button
+              onClick={handleUnlockAll}
+              disabled={isUnlocking}
+                  className="w-full bg-green-500 hover:bg-green-600"
+            >
+              {isUnlocking ? "Déblocage en cours..." : "Débloquer Tout à 100%"}
+            </Button>
+          </Card>
+        </div>
 
             <Card className="p-6 border-cyan-500/50 bg-cyan-500/5">
               <div className="flex items-center gap-3 mb-4">

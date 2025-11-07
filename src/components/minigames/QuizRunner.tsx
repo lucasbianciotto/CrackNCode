@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { HelpCircle, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, ArrowRight, Wand2 } from "lucide-react";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
 import { isCheatModeEnabled } from "@/utils/cheatMode";
+import { getSuccessDefinition } from "@/data/achievements";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -59,6 +60,7 @@ export function QuizRunner({
                                levelNumber,
                                xpReward,
                                levelTitle,
+                               onSuccess,
                            }: {
     quiz: QuizMinigame;
     languageId: string;
@@ -67,6 +69,7 @@ export function QuizRunner({
     levelNumber?: number;
     xpReward?: number;
     levelTitle?: string;
+    onSuccess?: () => void;
 }) {
     const passing = quiz.passingScorePercent ?? 70;
     const [started, setStarted] = useState(false);
@@ -216,7 +219,18 @@ export function QuizRunner({
         const scorePercentQ = totalQ > 0 ? Math.round((correctCountQ / totalQ) * 100) : 0;
         const passedQ = scorePercentQ >= passing;
 
-        if (!passedQ || !languageId || !levelNumber) {
+        if (!passedQ) {
+            toast.error("Impossible de valider le niveau");
+            return;
+        }
+
+        // Si onSuccess est fourni (défi boss), on l'appelle au lieu de compléter le niveau
+        if (onSuccess) {
+            onSuccess();
+            return;
+        }
+
+        if (!languageId || !levelNumber) {
             toast.error("Impossible de valider le niveau");
             return;
         }
@@ -262,7 +276,8 @@ export function QuizRunner({
                     if (data.newAchievements && data.newAchievements.length > 0) {
                         setTimeout(() => {
                             data.newAchievements.forEach((achievement: string) => {
-                                toast.success(`🎉 Nouveau succès débloqué ! ${achievement}`);
+                                const def = getSuccessDefinition(achievement);
+                                toast.success(`🎉 Nouveau succès débloqué ! ${def?.titre || achievement}`);
                             });
                         }, 500);
                     }

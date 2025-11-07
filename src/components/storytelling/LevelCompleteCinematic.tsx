@@ -50,7 +50,7 @@ export function LevelCompleteCinematic({
 
   const steps = [
     {
-      icon: <Trophy className="w-20 h-20 text-yellow-400" />,
+      icon: <Trophy className="w-20 h-20 text-yellow-adaptive" />,
       title: "Défi Complété !",
       message: `Tu as maîtrisé : ${levelTitle}`,
       xp: `+${xpEarned} XP`,
@@ -58,17 +58,20 @@ export function LevelCompleteCinematic({
     {
       icon: <span className="text-8xl animate-bounce">🐙</span>,
       title: "Crack'n te félicite !",
-      message: getCracknDialogue(
-        isFirstLevel ? "first_level" : isLanguageComplete ? "language_complete" : "level_complete",
-        { languageName }
-      ),
+      message: (() => {
+        const dialogue = getCracknDialogue(
+          isFirstLevel ? "first_level" : isLanguageComplete ? "language_complete" : "level_complete",
+          { languageName }
+        );
+        return typeof dialogue === 'string' ? dialogue : dialogue?.text || "Excellent travail !";
+      })(),
       xp: null,
     },
     {
       icon: isLanguageComplete ? (
-        <Sword className="w-20 h-20 text-red-500 animate-pulse" />
+        <Sword className="w-20 h-20 text-destructive animate-pulse" />
       ) : (
-        <Sparkles className="w-20 h-20 text-cyan-400 animate-pulse" />
+        <Sparkles className="w-20 h-20 text-primary animate-pulse" />
       ),
       title: isLanguageComplete ? "Tentacule Coupé !" : "Prochaine Étape",
       message: isLanguageComplete
@@ -91,11 +94,11 @@ export function LevelCompleteCinematic({
             {/* Vagues animées */}
             <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-cyan-500/20 to-transparent animate-float" />
             
-            {/* Particules de célébration */}
-            {[...Array(30)].map((_, i) => (
+            {/* Particules de célébration - réduites */}
+            {[...Array(15)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-3 h-3 bg-yellow-400 rounded-full animate-pulse"
+                className="absolute w-2 h-2 bg-yellow-adaptive rounded-full animate-pulse"
                 style={{
                   left: `${50 + (Math.random() - 0.5) * 100}%`,
                   top: `${50 + (Math.random() - 0.5) * 100}%`,
@@ -105,60 +108,64 @@ export function LevelCompleteCinematic({
             ))}
           </div>
 
-          {/* Main content */}
+          {/* Main content - Compact */}
           <div
             key={step}
-            className="relative z-10 max-w-lg w-full animate-scale-in"
+            className="relative z-10 max-w-md w-full animate-scale-in"
           >
-            <Card className="p-8 bg-gradient-to-br from-slate-900/95 via-blue-900/95 to-slate-900/95 border-2 border-cyan-500/50 shadow-2xl text-center">
-              {/* Icon */}
-              <div className="flex justify-center mb-6 animate-bounce">
-                {currentStep.icon}
+            <Card className="p-4 bg-gradient-to-br from-card/95 via-card/95 to-card/95 border-2 border-primary/50 shadow-2xl text-center">
+              {/* Icon - Réduit */}
+              <div className="flex justify-center mb-3 animate-bounce">
+                {typeof currentStep.icon === 'string' ? (
+                  <span className="text-5xl">{currentStep.icon}</span>
+                ) : (
+                  <div className="scale-75">{currentStep.icon}</div>
+                )}
               </div>
 
-              {/* Title */}
-              <h2 className="text-3xl font-bold gradient-text mb-4 animate-fade-in">
+              {/* Title - Réduit */}
+              <h2 className="text-xl font-bold gradient-text mb-2 animate-fade-in">
                 {currentStep.title}
               </h2>
 
-              {/* Message */}
-              <p className="text-lg text-foreground leading-relaxed mb-4 min-h-[60px] animate-fade-in">
+              {/* Message - Réduit */}
+              <p className="text-sm text-foreground leading-relaxed mb-3 min-h-[40px] animate-fade-in">
                 {currentStep.message}
               </p>
 
-              {/* XP Display */}
+              {/* XP Display - Réduit */}
               {currentStep.xp && (
-                <div className="flex items-center justify-center gap-2 mb-6 animate-scale-in">
-                  <Zap className="w-6 h-6 text-yellow-400" />
-                  <span className="text-2xl font-bold text-yellow-400">{currentStep.xp}</span>
+                <div className="flex items-center justify-center gap-2 mb-3 animate-scale-in">
+                  <Zap className="w-4 h-4 text-yellow-adaptive" />
+                  <span className="text-lg font-bold text-yellow-adaptive">{currentStep.xp}</span>
                 </div>
               )}
 
-              {/* Progress dots */}
-              <div className="flex justify-center gap-2 mb-6">
+              {/* Progress dots - Réduit */}
+              <div className="flex justify-center gap-1.5 mb-3">
                 {steps.map((_, index) => (
                   <div
                     key={index}
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-1.5 rounded-full transition-all ${
                       index === step
-                        ? "bg-cyan-400 w-8"
+                        ? "bg-primary w-6"
                         : index < step
-                        ? "bg-cyan-400/50 w-4"
-                        : "bg-muted w-2"
+                        ? "bg-primary/50 w-3"
+                        : "bg-muted w-1.5"
                     }`}
                   />
                 ))}
               </div>
 
-              {/* Continue button */}
+              {/* Continue button - Réduit */}
               {step === steps.length - 1 && (
                 <div className="animate-fade-in">
                   <Button
                     onClick={handleContinue}
-                    size="lg"
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                    size="sm"
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                   >
-                    <Sparkles className="w-5 h-5 mr-2" />
+                    <Sparkles className="w-4 h-4 mr-2" />
                     Continuer
                   </Button>
                 </div>

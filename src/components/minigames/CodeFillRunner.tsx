@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Code2, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, Wand2 } from "lucide-react";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
+import { getSuccessDefinition } from "@/data/achievements";
 import { isCheatModeEnabled } from "@/utils/cheatMode";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -81,6 +82,7 @@ export function CodeFillRunner({
   levelNumber,
   xpReward,
   levelTitle,
+  onSuccess,
 }: {
   game: CodeFillMinigame;
   languageId: string;
@@ -89,6 +91,7 @@ export function CodeFillRunner({
   levelNumber?: number;
   xpReward?: number;
   levelTitle?: string;
+  onSuccess?: () => void;
 }) {
     const passing = game.passingScorePercent ?? 100;
     const [started, setStarted] = useState(false);
@@ -189,7 +192,18 @@ export function CodeFillRunner({
 
     const handleCompleteLevel = async () => {
         const passedLocal = passed;
-        if (!passedLocal || !languageId || !levelNumber) {
+        if (!passedLocal) {
+            toast.error("Impossible de valider le niveau");
+            return;
+        }
+
+        // Si onSuccess est fourni (défi boss), on l'appelle au lieu de compléter le niveau
+        if (onSuccess) {
+            onSuccess();
+            return;
+        }
+
+        if (!languageId || !levelNumber) {
             toast.error("Impossible de valider le niveau");
             return;
         }
@@ -235,7 +249,8 @@ export function CodeFillRunner({
                     if (data.newAchievements && data.newAchievements.length > 0) {
                         setTimeout(() => {
                             data.newAchievements.forEach((achievement: string) => {
-                                toast.success(`🎉 Nouveau succès débloqué ! ${achievement}`);
+                                const def = getSuccessDefinition(achievement);
+                                toast.success(`🎉 Nouveau succès débloqué ! ${def?.titre || achievement}`);
                             });
                         }, 500);
                     }

@@ -9,10 +9,33 @@ const mapUserData = (data: any): UserProfile | null => {
 
   const baseUser = data.user;
   const xpGlobal = typeof baseUser.xp_global === "number" ? baseUser.xp_global : 0;
-  const LEVEL_SIZE = 1000;
-  const level = Math.floor(xpGlobal / LEVEL_SIZE) + 1;
-  const currentXP = xpGlobal % LEVEL_SIZE;
-  const xpToNextLevel = LEVEL_SIZE;
+  
+  // Progression exponentielle : niveau 1 à 28 au combat Kraken, puis jusqu'à 30 (niveau rond)
+  // Formule : level = 1 + floor(sqrt(xp / 10))
+  // - Niveau 1 : 0 XP
+  // - Niveau 2 : ~30 XP (après premier niveau de 100 XP, on a 100 XP donc niveau 4, mais on veut niveau 2)
+  // - Niveau 28 : ~7200 XP (tous les langages complétés : 8 * 900 = 7200 XP)
+  // - Niveau 30 : ~9000 XP (niveau rond final)
+  
+  // Calcul du niveau avec progression exponentielle
+  const calculateLevel = (xp: number): number => {
+    if (xp <= 0) return 1;
+    // Formule exponentielle : level = 1 + floor(sqrt(xp / 10))
+    // Avec k=10 : 7200 XP → 1 + sqrt(720) ≈ 1 + 26.8 ≈ 28 ✓
+    //             9000 XP → 1 + sqrt(900) = 1 + 30 = 31, limité à 30 ✓
+    const level = Math.floor(1 + Math.sqrt(xp / 10));
+    // Limite à 30 (niveau rond final)
+    return Math.min(level, 30);
+  };
+  
+  const level = calculateLevel(xpGlobal);
+  
+  // Calcul de l'XP nécessaire pour le niveau suivant
+  // Pour niveau n, il faut (n-1)² * 10 XP
+  const xpForNextLevel = (level + 1 <= 30) ? Math.pow(level, 2) * 10 : Infinity;
+  const xpForCurrentLevel = level > 1 ? Math.pow(level - 1, 2) * 10 : 0;
+  const currentXP = xpGlobal - xpForCurrentLevel;
+  const xpToNextLevel = xpForNextLevel - xpForCurrentLevel;
   const totalXP = xpGlobal;
 
   const mapped: UserProfile = {

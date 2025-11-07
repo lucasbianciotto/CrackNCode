@@ -27,6 +27,22 @@
   --input: 53 10% 22%; /* Plus clair pour meilleure visibilité */
   --ring: 357 55% 60%; /* Nouveau rose/coral pour focus */
     --radius: 0.75rem;
+    
+    /* Couleurs adaptatives par défaut (mode sombre) */
+    --color-cyan: 195 85% 60%; /* Cyan clair pour mode sombre */
+    --color-cyan-light: 195 85% 70%;
+    --color-yellow: 45 95% 60%; /* Jaune clair pour mode sombre */
+    --color-yellow-light: 45 95% 70%;
+    --color-green: 142 70% 55%; /* Vert clair pour mode sombre */
+    --color-green-light: 142 70% 65%;
+    --color-red: 0 75% 60%; /* Rouge clair pour mode sombre */
+    --color-red-light: 0 75% 70%;
+    --color-purple: 270 70% 60%; /* Violet clair pour mode sombre */
+    --color-purple-light: 270 70% 70%;
+    --color-orange: 25 95% 60%; /* Orange clair pour mode sombre */
+    --color-orange-light: 25 95% 70%;
+    --color-blue: 217 85% 60%; /* Bleu clair pour mode sombre */
+    --color-blue-light: 217 85% 70%;
 
     /* Gradients and effects used by Tailwind extensions */
   --gradient-primary: linear-gradient(135deg, hsl(357 55% 60%), hsl(357 50% 55%));
@@ -66,6 +82,22 @@
   --ring: 357 55% 60%; /* Nouveau rose/coral pour focus */
   --radius: 0.75rem;
   --gradient-hero: linear-gradient(135deg, hsl(357 55% 60% / 0.20), hsl(357 50% 55% / 0.20));
+  
+  /* Couleurs adaptatives pour mode sombre */
+  --color-cyan: 195 85% 60%; /* Cyan clair pour mode sombre */
+  --color-cyan-light: 195 85% 70%;
+  --color-yellow: 45 95% 60%; /* Jaune clair pour mode sombre */
+  --color-yellow-light: 45 95% 70%;
+  --color-green: 142 70% 55%; /* Vert clair pour mode sombre */
+  --color-green-light: 142 70% 65%;
+  --color-red: 0 75% 60%; /* Rouge clair pour mode sombre */
+  --color-red-light: 0 75% 70%;
+  --color-purple: 270 70% 60%; /* Violet clair pour mode sombre */
+  --color-purple-light: 270 70% 70%;
+  --color-orange: 25 95% 60%; /* Orange clair pour mode sombre */
+  --color-orange-light: 25 95% 70%;
+  --color-blue: 217 85% 60%; /* Bleu clair pour mode sombre */
+  --color-blue-light: 217 85% 70%;
   }
   .light {
     --background: 0 0% 98%; /* Blanc presque pur pour meilleur contraste */
@@ -89,6 +121,22 @@
     --ring: 357 55% 50%; /* Nouveau rose/coral pour focus */
     --radius: 0.75rem;
     --gradient-hero: linear-gradient(135deg, hsl(357 55% 50% / 0.15), hsl(357 50% 48% / 0.15));
+    
+    /* Couleurs adaptatives pour mode clair */
+    --color-cyan: 195 85% 45%; /* Cyan plus foncé pour mode clair */
+    --color-cyan-light: 195 85% 55%;
+    --color-yellow: 45 95% 50%; /* Jaune plus foncé pour mode clair */
+    --color-yellow-light: 45 95% 60%;
+    --color-green: 142 70% 45%; /* Vert plus foncé pour mode clair */
+    --color-green-light: 142 70% 55%;
+    --color-red: 0 75% 50%; /* Rouge plus foncé pour mode clair */
+    --color-red-light: 0 75% 60%;
+    --color-purple: 270 70% 50%; /* Violet plus foncé pour mode clair */
+    --color-purple-light: 270 70% 60%;
+    --color-orange: 25 95% 50%; /* Orange plus foncé pour mode clair */
+    --color-orange-light: 25 95% 60%;
+    --color-blue: 217 85% 50%; /* Bleu plus foncé pour mode clair */
+    --color-blue-light: 217 85% 60%;
   }
 }
 
@@ -163,6 +211,115 @@
   button, .btn {
     font-weight: 500;
     letter-spacing: 0.025em;
+  }
+  
+  /* Classes utilitaires pour couleurs adaptatives */
+  .text-cyan-adaptive {
+    color: hsl(var(--color-cyan));
+  }
+  .text-cyan-light-adaptive {
+    color: hsl(var(--color-cyan-light));
+  }
+  .text-yellow-adaptive {
+    color: hsl(var(--color-yellow));
+  }
+  .text-yellow-light-adaptive {
+    color: hsl(var(--color-yellow-light));
+  }
+  .text-green-adaptive {
+    color: hsl(var(--color-green));
+  }
+  .text-green-light-adaptive {
+    color: hsl(var(--color-green-light));
+  }
+  .text-red-adaptive {
+    color: hsl(var(--color-red));
+  }
+  .text-red-light-adaptive {
+    color: hsl(var(--color-red-light));
+  }
+  .text-purple-adaptive {
+    color: hsl(var(--color-purple));
+  }
+  .text-purple-light-adaptive {
+    color: hsl(var(--color-purple-light));
+  }
+  .text-orange-adaptive {
+    color: hsl(var(--color-orange));
+  }
+  .text-orange-light-adaptive {
+    color: hsl(var(--color-orange-light));
+  }
+  .text-blue-adaptive {
+    color: hsl(var(--color-blue));
+  }
+  .text-blue-light-adaptive {
+    color: hsl(var(--color-blue-light));
+  }
+  
+  .bg-cyan-adaptive {
+    background-color: hsl(var(--color-cyan) / 0.2);
+  }
+  .bg-cyan-light-adaptive {
+    background-color: hsl(var(--color-cyan-light) / 0.3);
+  }
+  .bg-yellow-adaptive {
+    background-color: hsl(var(--color-yellow) / 0.2);
+  }
+  .bg-yellow-light-adaptive {
+    background-color: hsl(var(--color-yellow-light) / 0.3);
+  }
+  .bg-green-adaptive {
+    background-color: hsl(var(--color-green) / 0.2);
+  }
+  .bg-green-light-adaptive {
+    background-color: hsl(var(--color-green-light) / 0.3);
+  }
+  .bg-red-adaptive {
+    background-color: hsl(var(--color-red) / 0.2);
+  }
+  .bg-red-light-adaptive {
+    background-color: hsl(var(--color-red-light) / 0.3);
+  }
+  .bg-purple-adaptive {
+    background-color: hsl(var(--color-purple) / 0.2);
+  }
+  .bg-purple-light-adaptive {
+    background-color: hsl(var(--color-purple-light) / 0.3);
+  }
+  .bg-orange-adaptive {
+    background-color: hsl(var(--color-orange) / 0.2);
+  }
+  .bg-orange-light-adaptive {
+    background-color: hsl(var(--color-orange-light) / 0.3);
+  }
+  .bg-blue-adaptive {
+    background-color: hsl(var(--color-blue) / 0.2);
+  }
+  .bg-blue-light-adaptive {
+    background-color: hsl(var(--color-blue-light) / 0.3);
+  }
+  
+  .border-cyan-adaptive {
+    border-color: hsl(var(--color-cyan) / 0.3);
+  }
+  .border-yellow-adaptive {
+    border-color: hsl(var(--color-yellow) / 0.3);
+  }
+  .border-green-adaptive {
+    border-color: hsl(var(--color-green) / 0.3);
+  }
+  .border-red-adaptive {
+    border-color: hsl(var(--color-red) / 0.3);
+  }
+  .border-purple-adaptive {
+    border-color: hsl(var(--color-purple) / 0.3);
+  }
+  .border-orange-adaptive {
+    border-color: hsl(var(--color-orange) / 0.3);
+  }
+  .border-blue-adaptive {
+    border-color: hsl(var(--color-blue) / 0.3);
   }
 }
 

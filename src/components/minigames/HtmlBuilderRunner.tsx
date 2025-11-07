@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
+import { getSuccessDefinition } from "@/data/achievements";
 import { isCheatModeEnabled } from "@/utils/cheatMode";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -32,6 +33,8 @@ export function HtmlBuilderRunner({
   levelNumber,
   xpReward,
   levelTitle,
+  onSuccess,
+  levelKey,
 }: { 
   game: HtmlBuilderGame; 
   onExit?: () => void;
@@ -39,6 +42,8 @@ export function HtmlBuilderRunner({
   levelNumber?: number;
   xpReward?: number;
   levelTitle?: string;
+  onSuccess?: () => void;
+  levelKey?: string;
 }) {
   const [code, setCode] = useState<string>(game.starter);
   const [hintCount, setHintCount] = useState<number>(0);
@@ -157,7 +162,18 @@ export function HtmlBuilderRunner({
   };
 
   const handleCompleteLevel = async () => {
-    if (!allOk || !languageId || !levelNumber) {
+    if (!allOk) {
+      toast.error("Impossible de valider le niveau");
+      return;
+    }
+
+    // Si onSuccess est fourni (défi boss), on l'appelle au lieu de compléter le niveau
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+
+    if (!languageId || !levelNumber) {
       toast.error("Impossible de valider le niveau");
       return;
     }
@@ -217,7 +233,8 @@ export function HtmlBuilderRunner({
           if (data.newAchievements && data.newAchievements.length > 0) {
             setTimeout(() => {
               data.newAchievements.forEach((achievement: string) => {
-                toast.success(`🎉 Nouveau succès débloqué ! ${achievement}`);
+                const def = getSuccessDefinition(achievement);
+                toast.success(`🎉 Nouveau succès débloqué ! ${def?.titre || achievement}`);
               });
             }, 500);
           }
@@ -278,13 +295,13 @@ export function HtmlBuilderRunner({
       
       <div className="space-y-6">
         {/* Header avec progression immersive */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-900/20 via-blue-900/20 to-purple-900/20 border-2 border-cyan-500/30 p-6">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)] animate-pulse" />
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-accent/10 to-primary/10 border-2 border-primary/30 p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.1),transparent_70%)] animate-pulse" />
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-400/30">
-                  <Code2 className="w-6 h-6 text-cyan-400" />
+                <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
+                  <Code2 className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-foreground">Défi HTML Builder</h3>
@@ -292,9 +309,9 @@ export function HtmlBuilderRunner({
                 </div>
               </div>
               {xpReward && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30">
-                  <Zap className="w-5 h-5 text-yellow-400" />
-                  <span className="font-bold text-yellow-400">+{xpReward} XP</span>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-adaptive border border-yellow-adaptive">
+                  <Zap className="w-5 h-5 text-yellow-adaptive" />
+                  <span className="font-bold text-yellow-adaptive">+{xpReward} XP</span>
                 </div>
               )}
             </div>
@@ -303,11 +320,11 @@ export function HtmlBuilderRunner({
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-foreground font-medium">Objectifs complétés</span>
-                <span className="text-cyan-400 font-bold">{completedGoals}/{totalGoals}</span>
+                <span className="text-primary font-bold">{completedGoals}/{totalGoals}</span>
               </div>
-              <div className="relative h-3 bg-background/50 rounded-full overflow-hidden border border-cyan-500/20">
+              <div className="relative h-3 bg-background/50 rounded-full overflow-hidden border border-primary/20">
                 <div 
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-500 ease-out rounded-full"
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-primary transition-all duration-500 ease-out rounded-full"
                   style={{ width: `${progressPercent}%` }}
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)] animate-shimmer" />
@@ -322,75 +339,75 @@ export function HtmlBuilderRunner({
           <div className="space-y-4">
             <Tabs defaultValue="learn" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-                <TabsTrigger value="learn" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500">
+                <TabsTrigger value="learn" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent">
                   <Lightbulb className="w-4 h-4 mr-2" />
                   Apprendre
                 </TabsTrigger>
-                <TabsTrigger value="play" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500">
+                <TabsTrigger value="play" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-adaptive data-[state=active]:to-primary">
                   <Target className="w-4 h-4 mr-2" />
                   Objectifs
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="learn" className="mt-4">
-                <Card className="p-6 bg-gradient-to-br from-slate-900/50 via-cyan-900/30 to-slate-800/50 border-cyan-500/20 shadow-xl">
+                <Card className="p-6 bg-gradient-to-br from-card/50 via-card/30 to-card/50 border-primary/20 shadow-xl">
                   {/* Header avec badge */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/30 to-blue-500/30 border border-cyan-400/50">
-                        <Sparkles className="w-6 h-6 text-cyan-400 animate-pulse" />
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 border border-primary/50">
+                        <Sparkles className="w-6 h-6 text-primary animate-pulse" />
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-foreground">HTML — Structure de base</h2>
                         <p className="text-xs text-muted-foreground">Leçon interactive</p>
                       </div>
                     </div>
-                    <div className="px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30">
-                      <span className="text-xs font-bold text-cyan-300">📚 Théorie</span>
+                    <div className="px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30">
+                      <span className="text-xs font-bold text-primary">📚 Théorie</span>
                     </div>
                   </div>
 
                   {/* Contenu avec design gamifié */}
                   <div className="space-y-4">
-                    <div className="p-4 rounded-lg bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
                       <p className="text-sm text-foreground leading-relaxed mb-3">
-                        Un document HTML contient généralement un <code className="px-2 py-1 rounded-md bg-cyan-500/30 text-cyan-200 font-mono text-xs border border-cyan-400/50">&lt;head&gt;</code> et un <code className="px-2 py-1 rounded-md bg-cyan-500/30 text-cyan-200 font-mono text-xs border border-cyan-400/50">&lt;body&gt;</code>.
+                        Un document HTML contient généralement un <code className="px-2 py-1 rounded-md bg-primary/30 text-primary-foreground font-mono text-xs border border-primary/50">&lt;head&gt;</code> et un <code className="px-2 py-1 rounded-md bg-primary/30 text-primary-foreground font-mono text-xs border border-primary/50">&lt;body&gt;</code>.
                       </p>
                       <p className="text-sm text-foreground leading-relaxed">
                         Dans le corps, on place des éléments comme :
                       </p>
                       <div className="grid grid-cols-3 gap-2 mt-3">
-                        <div className="p-2 rounded-md bg-background/50 border border-cyan-500/20 text-center">
-                          <code className="text-xs font-mono text-cyan-300">&lt;h1&gt;</code>
+                        <div className="p-2 rounded-md bg-background/50 border border-primary/20 text-center">
+                          <code className="text-xs font-mono text-primary">&lt;h1&gt;</code>
                           <p className="text-xs text-muted-foreground mt-1">Titre</p>
                         </div>
-                        <div className="p-2 rounded-md bg-background/50 border border-cyan-500/20 text-center">
-                          <code className="text-xs font-mono text-cyan-300">&lt;p&gt;</code>
+                        <div className="p-2 rounded-md bg-background/50 border border-primary/20 text-center">
+                          <code className="text-xs font-mono text-primary">&lt;p&gt;</code>
                           <p className="text-xs text-muted-foreground mt-1">Paragraphe</p>
                         </div>
-                        <div className="p-2 rounded-md bg-background/50 border border-cyan-500/20 text-center">
-                          <code className="text-xs font-mono text-cyan-300">&lt;a&gt;</code>
+                        <div className="p-2 rounded-md bg-background/50 border border-primary/20 text-center">
+                          <code className="text-xs font-mono text-primary">&lt;a&gt;</code>
                           <p className="text-xs text-muted-foreground mt-1">Lien</p>
                         </div>
                       </div>
                     </div>
 
-                    <Separator className="bg-cyan-500/20" />
+                    <Separator className="bg-primary/20" />
 
                     {/* Exemple avec design amélioré */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full" />
+                        <div className="w-1 h-4 bg-gradient-to-b from-primary to-accent rounded-full" />
                         <p className="font-semibold text-sm text-foreground">Exemple minimal :</p>
                       </div>
                       <div className="relative">
-                        <pre className="p-4 rounded-lg bg-background/90 border-2 border-cyan-500/30 text-foreground overflow-auto text-xs font-mono shadow-inner">
+                        <pre className="p-4 rounded-lg bg-background/90 border-2 border-primary/30 text-foreground overflow-auto text-xs font-mono shadow-inner">
 {`<h1>Mon titre</h1>
 <p>Un texte de présentation.</p>
 <a href="https://developer.mozilla.org/">Découvrir MDN</a>`}
                         </pre>
-                        <div className="absolute top-2 right-2 px-2 py-1 rounded bg-cyan-500/20 border border-cyan-400/30">
-                          <span className="text-[10px] font-bold text-cyan-300">💡 Exemple</span>
+                        <div className="absolute top-2 right-2 px-2 py-1 rounded bg-primary/20 border border-primary/30">
+                          <span className="text-[10px] font-bold text-primary">💡 Exemple</span>
                         </div>
                       </div>
                     </div>
@@ -400,7 +417,7 @@ export function HtmlBuilderRunner({
                       <Button 
                         variant="secondary" 
                         onClick={insertTemplate} 
-                        className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-400/30"
+                        className="bg-gradient-to-r from-primary/20 to-accent/20 hover:from-primary/30 hover:to-accent/30 border border-primary/30"
                       >
                         <Code2 className="w-4 h-4 mr-2" />
                         Modèle complet
@@ -421,17 +438,17 @@ export function HtmlBuilderRunner({
               </TabsContent>
 
               <TabsContent value="play" className="mt-4">
-                <Card className="p-6 bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/20">
+                <Card className="p-6 bg-gradient-to-br from-purple-adaptive to-primary/30 border-purple-adaptive shadow-xl">
                   <div className="flex items-center gap-2 mb-4">
-                    <Trophy className="w-5 h-5 text-purple-400" />
+                    <Trophy className="w-5 h-5 text-purple-adaptive" />
                     <h2 className="text-lg font-bold text-foreground">Objectifs du niveau</h2>
                   </div>
                   <ul className="space-y-3 mb-4">
                     {game.goals.map((g) => {
                       const ok = goalChecks.find((c) => c.id === g.id)?.ok;
                       return (
-                        <li key={g.id} className="flex items-start gap-3 p-3 rounded-lg bg-background/30 border border-purple-500/20 transition-all">
-                          <div className={`mt-0.5 flex-shrink-0 ${ok ? 'text-green-400' : 'text-muted-foreground'}`}>
+                        <li key={g.id} className="flex items-start gap-3 p-3 rounded-lg bg-card/30 border border-purple-adaptive transition-all">
+                          <div className={`mt-0.5 flex-shrink-0 ${ok ? 'text-green-adaptive' : 'text-muted-foreground'}`}>
                             {ok ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                           </div>
                           <span className={`text-sm flex-1 ${ok ? 'text-foreground line-through opacity-60' : 'text-foreground font-medium'}`}>
@@ -441,14 +458,14 @@ export function HtmlBuilderRunner({
                       );
                     })}
                   </ul>
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-background/30 border border-purple-500/20">
-                    <Lightbulb className="w-4 h-4 text-purple-400" />
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-card/30 border border-purple-adaptive">
+                    <Lightbulb className="w-4 h-4 text-purple-adaptive" />
                     {currentGoal ? (
                       <span className="text-sm text-foreground">
                         Astuce: {currentGoal.selector === "h1" ? "Ajoute un titre h1" : currentGoal.selector === "p" ? "Ajoute un paragraphe" : "Ajoute un lien avec href"}
                       </span>
                     ) : (
-                      <span className="text-sm text-green-400 font-medium">✨ Tous les objectifs sont validés !</span>
+                      <span className="text-sm text-green-adaptive font-medium">✨ Tous les objectifs sont validés !</span>
                     )}
                   </div>
                   <div className="mt-3">
@@ -468,7 +485,7 @@ export function HtmlBuilderRunner({
                     size="sm" 
                     variant="outline" 
                     onClick={autoFillAll}
-                    className="w-full border-cyan-500/50 bg-cyan-500/10 hover:bg-cyan-500/20"
+                    className="w-full border-primary/50 bg-primary/10 hover:bg-primary/20"
                   >
                     <Wand2 className="w-4 h-4 mr-2" />
                     ✨ Remplir automatiquement (Cheat)
@@ -481,11 +498,11 @@ export function HtmlBuilderRunner({
             </Tabs>
 
             {/* Éditeur avec style immersif */}
-            <Card className="p-0 overflow-hidden border-cyan-500/30 bg-gradient-to-br from-slate-900/80 to-slate-800/80">
-              <div className="border-b border-cyan-500/30 px-4 py-3 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 flex items-center justify-between">
+            <Card className="p-0 overflow-hidden border-primary/30 bg-gradient-to-br from-card/80 to-card/80">
+              <div className="border-b border-primary/30 px-4 py-3 bg-gradient-to-r from-primary/30 to-accent/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs font-medium text-cyan-300">Éditeur HTML</span>
+                  <Code2 className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-medium text-primary">Éditeur HTML</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{code.split('\n').length} lignes</span>
@@ -498,14 +515,14 @@ export function HtmlBuilderRunner({
                 placeholder="Écris ton code HTML ici..."
                 spellCheck={false}
               />
-              <div className="flex justify-between items-center p-4 border-t border-cyan-500/30 bg-gradient-to-r from-slate-900/50 to-slate-800/50">
+              <div className="flex justify-between items-center p-4 border-t border-primary/30 bg-gradient-to-r from-card/50 to-card/50">
                 <div className="text-sm">
                   {allOk 
                     ? hasUsedTemplate 
-                      ? <span className="text-orange-400">⚠️ Modèle utilisé - validation impossible</span>
+                      ? <span className="text-orange-adaptive">⚠️ Modèle utilisé - validation impossible</span>
                       : hintCount >= MAX_HINTS
-                      ? <span className="text-orange-400">⚠️ Trop d'indices - validation impossible</span>
-                      : <span className="text-green-400 font-medium flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Prêt à valider !</span>
+                      ? <span className="text-orange-adaptive">⚠️ Trop d'indices - validation impossible</span>
+                      : <span className="text-green-adaptive font-medium flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Prêt à valider !</span>
                     : <span className="text-muted-foreground">Complète les objectifs pour valider</span>}
                 </div>
                 <div className="flex gap-2">
@@ -517,7 +534,7 @@ export function HtmlBuilderRunner({
                   <Button 
                     disabled={!canValidate} 
                     onClick={handleCompleteLevel}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50"
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 disabled:opacity-50"
                     size="sm"
                   >
                     <Trophy className="w-4 h-4 mr-2" />
@@ -530,14 +547,14 @@ export function HtmlBuilderRunner({
 
           {/* Colonne droite : Aperçu avec style immersif */}
           <div className="space-y-4">
-            <Card className="p-0 overflow-hidden border-cyan-500/30 bg-gradient-to-br from-slate-900/80 to-slate-800/80">
-              <div className="border-b border-cyan-500/30 px-4 py-3 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 flex items-center justify-between">
+            <Card className="p-0 overflow-hidden border-primary/30 bg-gradient-to-br from-card/80 to-card/80">
+              <div className="border-b border-primary/30 px-4 py-3 bg-gradient-to-r from-primary/30 to-accent/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs font-medium text-cyan-300">Aperçu en temps réel</span>
+                  <Eye className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-medium text-primary">Aperçu en temps réel</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-green-adaptive animate-pulse" />
                   <span className="text-xs text-muted-foreground">Live</span>
                 </div>
               </div>
