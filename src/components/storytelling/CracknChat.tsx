@@ -2,16 +2,19 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, MessageCircle, ChevronDown, ChevronUp, Sparkles, Minimize2, Maximize2, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CracknMessage } from "./CracknCompanion";
 
-const CRACKN_EMOTIONS = {
-  happy: "😊",
-  excited: "🤩",
-  worried: "😟",
-  proud: "😎",
-  determined: "💪",
-  cheering: "🎉",
+// Mapping des émotions vers les images
+const getEmotionImage = (emotion: string): string => {
+  const emotionMap: Record<string, string> = {
+    happy: "/kraken/happy.png",
+    excited: "/kraken/excited.png",
+    worried: "/kraken/worried.png",
+    proud: "/kraken/proud.png",
+    determined: "/kraken/determined.png",
+    cheering: "/kraken/cheering.png",
+  };
+  return emotionMap[emotion] || "/kraken/happy.png";
 };
 
 interface CracknChatProps {
@@ -21,7 +24,7 @@ interface CracknChatProps {
 }
 
 // Stockage global de l'historique des messages
-let globalMessageHistory: CracknMessage[] = [];
+let globalMessageHistory: (CracknMessage & { timestamp: number })[] = [];
 
 export function addMessageToHistory(message: CracknMessage) {
   // Évite les doublons
@@ -52,7 +55,6 @@ export function CracknChat({
   const [messageHistory, setMessageHistory] = useState<(CracknMessage & { timestamp?: number })[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -154,7 +156,7 @@ export function CracknChat({
 
   const latestMessage = sortedMessages[sortedMessages.length - 1];
   const latestEmotion = latestMessage?.emotion || "happy";
-  const latestEmoji = CRACKN_EMOTIONS[latestEmotion];
+  const latestEmotionImage = getEmotionImage(latestEmotion);
 
   // Format de date pour les messages
   const formatTime = (timestamp?: number) => {
@@ -179,8 +181,12 @@ export function CracknChat({
           onClick={() => setIsMinimized(false)}
           className="rounded-full w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-2xl border-4 border-white/20 animate-float"
         >
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-2xl">{latestEmoji}</span>
+          <div className="flex flex-col items-center gap-1 relative">
+            <img 
+              src={latestEmotionImage} 
+              alt={latestEmotion}
+              className="w-10 h-10 object-contain"
+            />
             {sortedMessages.length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold">
                 {sortedMessages.length > 9 ? "9+" : sortedMessages.length}
@@ -198,8 +204,12 @@ export function CracknChat({
         {/* Header */}
         <div className="p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-b border-cyan-300/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/30 animate-float">
-              <span className="text-2xl">{latestEmoji}</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white/30 animate-float overflow-hidden">
+              <img 
+                src={latestEmotionImage} 
+                alt={latestEmotion}
+                className="w-full h-full object-contain p-1"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -262,7 +272,7 @@ export function CracknChat({
               ) : (
                 sortedMessages.map((msg, index) => {
                   const emotion = msg.emotion || "happy";
-                  const emoji = CRACKN_EMOTIONS[emotion];
+                  const emotionImage = getEmotionImage(emotion);
                   const isLatest = index === sortedMessages.length - 1;
                   
                   return (
@@ -275,8 +285,12 @@ export function CracknChat({
                       }`}
                     >
                       <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30">
-                          <span className="text-lg">{emoji}</span>
+                        <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30 overflow-hidden">
+                          <img 
+                            src={emotionImage} 
+                            alt={emotion}
+                            className="w-full h-full object-contain p-1"
+                          />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -318,8 +332,12 @@ export function CracknChat({
           <div className="p-4 border-t border-cyan-300/30">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30">
-                  <span className="text-lg">{latestEmoji}</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30 overflow-hidden">
+                  <img 
+                    src={latestEmotionImage} 
+                    alt={latestEmotion}
+                    className="w-full h-full object-contain p-1"
+                  />
                 </div>
               </div>
               <div className="flex-1 min-w-0">

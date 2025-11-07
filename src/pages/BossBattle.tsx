@@ -342,7 +342,13 @@ export default function BossBattle() {
         {currentBoss && (isPhase1 || isPhase2) && (
           <Card className="p-6 border-border bg-gradient-to-br from-destructive/10 to-card">
             <div className="flex items-center gap-4 mb-4">
-              <div className="text-6xl">{currentBoss.avatar}</div>
+              <div className="w-16 h-16 flex items-center justify-center">
+                <img 
+                  src={currentBoss.avatar} 
+                  alt={currentBoss.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-foreground">{currentBoss.name}</h2>
                 <p className="text-muted-foreground">{currentBoss.title}</p>
@@ -500,7 +506,13 @@ export default function BossBattle() {
         {/* Idle State */}
         {phase === "idle" && currentBoss && (
           <Card className="p-8 border-border bg-gradient-card text-center">
-            <div className="text-8xl mb-4">{currentBoss.avatar}</div>
+            <div className="flex justify-center mb-4">
+              <img 
+                src={currentBoss.avatar} 
+                alt={currentBoss.name}
+                className="w-32 h-32 object-contain"
+              />
+            </div>
             <h2 className="text-3xl font-bold text-foreground mb-2">{currentBoss.name}</h2>
             <p className="text-lg text-muted-foreground mb-6">{currentBoss.lore}</p>
             <Button onClick={startBattle} size="lg" className="gap-2">

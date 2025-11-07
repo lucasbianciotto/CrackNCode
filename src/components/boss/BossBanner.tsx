@@ -33,7 +33,7 @@ export const BossBanner = () => {
           <div className="relative">
             <div
               className={cn(
-                "text-8xl md:text-9xl w-32 h-32 md:w-40 md:h-40 flex items-center justify-center rounded-2xl shrink-0 transition-all duration-300 shadow-2xl",
+                "w-32 h-32 md:w-40 md:h-40 flex items-center justify-center rounded-2xl shrink-0 transition-all duration-300 shadow-2xl overflow-hidden",
                 isDefeated ? "grayscale opacity-50" : "animate-pulse",
                 isLowHP && !isDefeated && "animate-bounce scale-110",
                 isMidHP && !isDefeated && "scale-105"
@@ -43,7 +43,11 @@ export const BossBanner = () => {
                 boxShadow: `0 0 40px ${currentBoss.color}50`
               }}
             >
-              {currentBoss.avatar}
+              <img 
+                src={currentBoss.avatar} 
+                alt={currentBoss.name}
+                className="w-full h-full object-contain p-2"
+              />
             </div>
             {/* Aura autour du boss */}
             {!isDefeated && (

@@ -31,7 +31,7 @@ const storySteps: StoryStep[] = [
   {
     id: 3,
     text: "Le Kraken du Code, monstre légendaire aux huit tentacules, règne sur l'océan numérique.",
-    icon: <span className="text-8xl animate-pulse">🐙</span>,
+    icon: <img src="/kraken/boss.png" alt="Kraken du Code" className="w-32 h-32 object-contain animate-pulse" />,
     duration: 7000,
   },
   {
@@ -55,7 +55,7 @@ const storySteps: StoryStep[] = [
   {
     id: 6.5,
     text: "Dans les profondeurs, un petit poulpe bienveillant t'attend : Crack'n, dernier gardien du code. Il sera ton guide et ton compagnon dans cette quête.",
-    icon: <span className="text-8xl animate-bounce">🐙</span>,
+    icon: <img src="/kraken/happy.png" alt="Crack'n" className="w-32 h-32 object-contain animate-bounce" />,
     duration: 8000,
   },
   {
@@ -166,8 +166,8 @@ export function GameIntro({ onComplete }: GameIntroProps) {
         </div>
         
         <div className="text-center space-y-6 animate-fade-in relative z-10">
-          <div className="mx-auto animate-spin-slow">
-            <span className="text-8xl animate-pulse">🐙</span>
+          <div className="mx-auto flex items-center justify-center">
+            <img src="/logo.png" alt="Crack'n Code" className="w-32 h-32 object-contain animate-pulse" />
           </div>
           <div className="space-y-2 animate-fade-in-delay">
             <h2 className="text-4xl font-bold gradient-text drop-shadow-lg">Crack'n Code</h2>
