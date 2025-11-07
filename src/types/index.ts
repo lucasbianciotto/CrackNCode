@@ -177,3 +177,16 @@ export interface Language {
   totalXP: number;
   earnedXP: number;
 }
+
+// Modèle Boss
+export interface Boss {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  lore: string;
+  maxHP: number;
+  currentHP: number;
+  avatar: string; // Peut être un emoji ou un chemin d'image
+  color: string;
+}

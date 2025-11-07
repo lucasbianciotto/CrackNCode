@@ -139,7 +139,13 @@ const Home = () => {
             <Card className="p-6 bg-gradient-to-br from-destructive/10 to-card border-border">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex-1">
-                  <div className="text-6xl mb-4">🐙</div>
+                  <div className="mb-4">
+                    <img 
+                      src="/kraken/boss.png" 
+                      alt="Le Kraken du Code" 
+                      className="w-24 h-24 object-contain"
+                    />
+                  </div>
                   <h3 className="text-2xl font-bold text-foreground mb-2">Le Kraken du Code</h3>
                   <p className="text-muted-foreground mb-4">
                     Affrontez le boss final ! Complétez 100% de tous les langages pour débloquer le combat épique.
