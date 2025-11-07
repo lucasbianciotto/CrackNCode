@@ -202,7 +202,7 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
             </div>
 
             {/* Right: Progress */}
-            <div className="space-y-3 md:space-y-4">
+            <div className="flex flex-col justify-between space-y-4 md:space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs md:text-sm font-medium text-foreground">Progression</span>
@@ -224,7 +224,7 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
 
               <Button
                 onClick={() => onLanguageSelect(selectedLanguage)}
-                className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 text-sm md:text-base py-5 md:py-6"
+                className="w-full bg-gradient-hero text-primary-foreground hover:opacity-90 text-sm md:text-base text-muted-foreground"
                 size="lg"
               >
                 Commencer l'aventure
