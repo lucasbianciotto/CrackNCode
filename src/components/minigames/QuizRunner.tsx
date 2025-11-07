@@ -7,11 +7,8 @@ import { toast } from "sonner";
 import { HelpCircle, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, ArrowRight, Wand2 } from "lucide-react";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
 import { isCheatModeEnabled } from "@/utils/cheatMode";
-<<<<<<< Updated upstream
 import { getSuccessDefinition } from "@/data/achievements";
-=======
 import { LessonCard } from "@/components/lesson/LessonCard";
->>>>>>> Stashed changes
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
