@@ -13,8 +13,14 @@ export const useLanguagesData = (enabled: boolean = true) => {
         credentials: "include",
       });
       if (!res.ok) {
-        // Si pas connecté, retourne les données statiques
-        return staticLanguages;
+        // Si pas connecté, retourne les données statiques avec progression à 0
+        return staticLanguages.map(lang => ({
+          ...lang,
+          currentLevel: 1,
+          completedLevels: 0,
+          earnedXP: 0,
+          totalXP: lang.totalXP,
+        }));
       }
       const data = await res.json();
       const apiLanguages = data.languages || [];
@@ -25,13 +31,20 @@ export const useLanguagesData = (enabled: boolean = true) => {
         if (apiLang) {
           return {
             ...staticLang,
-            currentLevel: apiLang.currentLevel || staticLang.currentLevel,
-            completedLevels: apiLang.completedLevels || staticLang.completedLevels,
-            earnedXP: apiLang.earnedXP || staticLang.earnedXP,
+            currentLevel: apiLang.currentLevel || 1,
+            completedLevels: apiLang.completedLevels || 0,
+            earnedXP: apiLang.earnedXP || 0,
             totalXP: apiLang.totalXP || staticLang.totalXP,
           };
         }
-        return staticLang;
+        // Si pas de données API pour ce langage, retourne avec progression à 0
+        return {
+          ...staticLang,
+          currentLevel: 1,
+          completedLevels: 0,
+          earnedXP: 0,
+          totalXP: staticLang.totalXP,
+        };
       });
 
       return mergedLanguages;

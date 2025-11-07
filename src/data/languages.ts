@@ -96,9 +96,9 @@ export const languages: Language[] = [
     icon: "⚙️",
     color: "hsl(271 81% 56%)",
     description: "Puissance et performance",
-    currentLevel: 3,
-    completedLevels: 2,
-    totalXP: 5000,
+    currentLevel: 1,
+    completedLevels: 0,
+    totalXP: XP_PER_LANGUAGE, // 900 XP
     earnedXP: 0,
   },
 ];

@@ -86,7 +86,7 @@ const Language = () => {
   }, [language, user]);
 
   const total = language ? getLanguageLevelsCount(language.id) : 0;
-  const raw = language && total ? (language.completedLevels / total) * 100 : 0;
+  const raw = language && total && user ? (language.completedLevels / total) * 100 : 0;
   const percent = Math.min(100, Math.max(0, Math.round(raw)));
 
   // État de chargement
@@ -118,6 +118,43 @@ const Language = () => {
             Retour à l'accueil
           </Button>
         </div>
+      </AppLayout>
+    );
+  }
+
+  // Si pas connecté, afficher un message pour se connecter
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+
+          <Card className="p-8 text-center border-primary/50 bg-primary/5">
+            <div className="max-w-md mx-auto space-y-4">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                {language.name}
+              </h1>
+              <p className="text-muted-foreground text-lg mb-6">
+                {language.description}
+              </p>
+              <div className="p-6 bg-card rounded-lg border border-border mb-6">
+                <p className="text-foreground font-medium mb-2">
+                  🔒 Connectez-vous pour accéder à ce langage
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Vous devez être connecté pour voir votre progression et accéder aux niveaux.
+                </p>
+                <Button onClick={() => setShowLoginPrompt(true)} size="lg" className="w-full">
+                  Se connecter
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+        <LoginPrompt open={showLoginPrompt} onOpenChange={setShowLoginPrompt} />
       </AppLayout>
     );
   }

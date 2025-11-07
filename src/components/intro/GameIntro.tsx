@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { SkipForward, Play, Code2, Ship, Zap, Trophy, AlertTriangle, ChevronRight, Waves, Sword } from "lucide-react";
+import { SkipForward, Play, Code2, Ship, Zap, Trophy, AlertTriangle, ChevronRight, ChevronLeft, Waves, Sword, Pause, PlayCircle } from "lucide-react";
 
 interface GameIntroProps {
   onComplete: () => void;
@@ -90,6 +90,7 @@ export function GameIntro({ onComplete }: GameIntroProps) {
   const [showSkip, setShowSkip] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(false);
   const [showContinueHint, setShowContinueHint] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const hintTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -114,11 +115,33 @@ export function GameIntro({ onComplete }: GameIntroProps) {
     } else {
       setCurrentStep((prev) => prev + 1);
       setShowContinueHint(false);
+      setShowPlayButton(false);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    // Clear any pending timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+      setShowContinueHint(false);
+      setShowPlayButton(false);
+    }
+  };
+
+  const togglePause = () => {
+    setIsPaused((prev) => !prev);
+    if (!isPaused) {
+      // Pause: clear timers
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     }
   };
 
   useEffect(() => {
-    if (isLoading || currentStep >= storySteps.length) return;
+    if (isLoading || currentStep >= storySteps.length || isPaused) return;
 
     // Clear previous timers
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -131,9 +154,11 @@ export function GameIntro({ onComplete }: GameIntroProps) {
       setShowContinueHint(true);
     }, 2000);
 
-    // Auto-advance after duration
+    // Auto-advance after duration (seulement si pas en pause)
     timerRef.current = setTimeout(() => {
-      goToNextStep();
+      if (!isPaused) {
+        goToNextStep();
+      }
     }, step.duration);
 
     return () => {
@@ -141,7 +166,7 @@ export function GameIntro({ onComplete }: GameIntroProps) {
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, isLoading]);
+  }, [currentStep, isLoading, isPaused]);
 
   const handleClick = () => {
     if (showPlayButton) return;
@@ -204,17 +229,43 @@ export function GameIntro({ onComplete }: GameIntroProps) {
         )}
       </div>
 
-      {/* Skip button */}
+      {/* Controls buttons */}
       {showSkip && !showPlayButton && (
-        <div className="absolute top-6 right-6 z-50 animate-slide-down">
+        <div className="absolute top-6 right-6 z-50 flex items-center gap-2 animate-slide-down">
+          {/* Previous button */}
+          {currentStep > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousStep}
+              className="bg-background/80 backdrop-blur-sm border-border hover:bg-background/90"
+              title="Étape précédente (Flèche gauche)"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          )}
+          
+          {/* Pause/Play button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={togglePause}
+            className="bg-background/80 backdrop-blur-sm border-border hover:bg-background/90"
+            title={isPaused ? "Reprendre (Espace)" : "Pause (Espace)"}
+          >
+            {isPaused ? <PlayCircle className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          </Button>
+          
+          {/* Skip button */}
           <Button
             variant="outline"
             size="sm"
             onClick={handleSkip}
             className="bg-background/80 backdrop-blur-sm border-border hover:bg-background/90"
+            title="Passer l'intro (Échap)"
           >
             <SkipForward className="w-4 h-4 mr-2" />
-            Passer l'intro
+            Passer
           </Button>
         </div>
       )}
@@ -246,10 +297,24 @@ export function GameIntro({ onComplete }: GameIntroProps) {
 
           {/* Continue hint */}
           {showContinueHint && !showPlayButton && (
-            <div className="flex items-center justify-center gap-2 text-blue-200 animate-fade-in-delay mt-4">
-              <ChevronRight className="w-5 h-5 animate-pulse" />
-              <span className="text-sm font-medium">Cliquer pour continuer</span>
-              <ChevronRight className="w-5 h-5 animate-pulse" />
+            <div className="flex flex-col items-center justify-center gap-2 text-blue-200 animate-fade-in-delay mt-4">
+              <div className="flex items-center gap-2">
+                {currentStep > 0 && (
+                  <>
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="text-xs">← Précédent</span>
+                  </>
+                )}
+                <ChevronRight className="w-5 h-5 animate-pulse" />
+                <span className="text-sm font-medium">Cliquer ou → pour continuer</span>
+                <ChevronRight className="w-5 h-5 animate-pulse" />
+              </div>
+              {isPaused && (
+                <div className="flex items-center gap-2 text-yellow-300 mt-2">
+                  <Pause className="w-4 h-4" />
+                  <span className="text-xs">En pause - Appuyez sur Espace pour reprendre</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -291,9 +356,13 @@ export function GameIntro({ onComplete }: GameIntroProps) {
         onPlay={handlePlay} 
         onSkip={handleSkip} 
         onNext={goToNextStep}
+        onPrevious={goToPreviousStep}
+        onTogglePause={togglePause}
         showPlay={showPlayButton} 
         showSkip={showSkip}
         canAdvance={!isLoading && !showPlayButton}
+        isPaused={isPaused}
+        canGoBack={currentStep > 0}
       />
     </div>
   );
@@ -303,31 +372,49 @@ function KeyboardHandler({
   onPlay,
   onSkip,
   onNext,
+  onPrevious,
+  onTogglePause,
   showPlay,
   showSkip,
   canAdvance,
+  isPaused,
+  canGoBack,
 }: {
   onPlay: () => void;
   onSkip: () => void;
   onNext: () => void;
+  onPrevious: () => void;
+  onTogglePause: () => void;
   showPlay: boolean;
   showSkip: boolean;
   canAdvance: boolean;
+  isPaused: boolean;
+  canGoBack: boolean;
 }) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Empêche le comportement par défaut pour les touches de navigation
+      if (["ArrowLeft", "ArrowRight", " ", "Enter", "Escape"].includes(e.key)) {
+        e.preventDefault();
+      }
+
       if (e.key === "Enter" && showPlay) {
         onPlay();
       } else if (e.key === "Escape" && showSkip) {
         onSkip();
-      } else if ((e.key === "Enter" || e.key === " " || e.key === "ArrowRight") && canAdvance && !showPlay) {
+      } else if (e.key === " " && canAdvance && !showPlay) {
+        // Espace pour pause/play ou avancer
+        onTogglePause();
+      } else if ((e.key === "Enter" || e.key === "ArrowRight") && canAdvance && !showPlay) {
         onNext();
+      } else if (e.key === "ArrowLeft" && canGoBack && !showPlay) {
+        onPrevious();
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [onPlay, onSkip, onNext, showPlay, showSkip, canAdvance]);
+  }, [onPlay, onSkip, onNext, onPrevious, onTogglePause, showPlay, showSkip, canAdvance, isPaused, canGoBack]);
 
   return null;
 }

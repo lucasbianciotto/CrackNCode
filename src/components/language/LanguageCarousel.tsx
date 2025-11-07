@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Trophy, Target, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getLanguageLevelsCount } from "@/data/languages";
+import { useAuth } from "@/context/AuthContext";
 
 interface LanguageCarouselProps {
   languages: Language[];
@@ -12,6 +13,7 @@ interface LanguageCarouselProps {
 }
 
 export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarouselProps) => {
+  const { user } = useAuth();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "center",
@@ -48,7 +50,7 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
   }, [emblaApi, onSelect]);
 
   const total = selectedLanguage ? getLanguageLevelsCount(selectedLanguage.id) : 0;
-  const raw = selectedLanguage && total ? (selectedLanguage.completedLevels / total) * 100 : 0;
+  const raw = selectedLanguage && total && user ? (selectedLanguage.completedLevels / total) * 100 : 0;
   const percent = Math.min(100, Math.max(0, Math.round(raw)));
 
   const handleLanguageClick = (language: Language, index: number) => {
@@ -176,51 +178,70 @@ export const LanguageCarousel = ({ languages, onLanguageSelect }: LanguageCarous
                 <p className="text-muted-foreground text-xs md:text-sm">{selectedLanguage.description}</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 md:gap-3">
-                <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-                  <Target className="w-4 h-4 md:w-5 md:h-5 text-accent mx-auto mb-1" />
-                  <p className="text-lg md:text-xl font-bold text-foreground">
-                    {selectedLanguage.currentLevel}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Niveau</p>
+              {user ? (
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
+                  <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
+                    <Target className="w-4 h-4 md:w-5 md:h-5 text-accent mx-auto mb-1" />
+                    <p className="text-lg md:text-xl font-bold text-foreground">
+                      {selectedLanguage.currentLevel}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Niveau</p>
+                  </div>
+                  <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
+                    <Trophy className="w-4 h-4 md:w-5 md:h-5 text-primary mx-auto mb-1" />
+                    <p className="text-lg md:text-xl font-bold text-foreground">
+                      {selectedLanguage.completedLevels}/{total}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Niveaux</p>
+                  </div>
+                  <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
+                    <Zap className="w-4 h-4 md:w-5 md:h-5 text-accent mx-auto mb-1" />
+                    <p className="text-lg md:text-xl font-bold text-foreground">
+                      {selectedLanguage.earnedXP}
+                    </p>
+                    <p className="text-xs text-muted-foreground">XP</p>
+                  </div>
                 </div>
-                <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-                  <Trophy className="w-4 h-4 md:w-5 md:h-5 text-primary mx-auto mb-1" />
-                  <p className="text-lg md:text-xl font-bold text-foreground">
-                    {selectedLanguage.completedLevels}/{total}
+              ) : (
+                <div className="text-center p-4 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Connectez-vous pour voir votre progression
                   </p>
-                  <p className="text-xs text-muted-foreground">Niveaux</p>
                 </div>
-                <div className="text-center p-2 md:p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
-                  <Zap className="w-4 h-4 md:w-5 md:h-5 text-accent mx-auto mb-1" />
-                  <p className="text-lg md:text-xl font-bold text-foreground">
-                    {selectedLanguage.earnedXP}
-                  </p>
-                  <p className="text-xs text-muted-foreground">XP</p>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Right: Progress */}
             <div className="flex flex-col justify-between space-y-4 md:space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs md:text-sm font-medium text-foreground">Progression</span>
-                  <span className="text-base md:text-lg font-bold text-foreground">
-                    {selectedLanguage.earnedXP} / {selectedLanguage.totalXP} XP
-                  </span>
+              {user ? (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs md:text-sm font-medium text-foreground">Progression</span>
+                    <span className="text-base md:text-lg font-bold text-foreground">
+                      {selectedLanguage.earnedXP} / {selectedLanguage.totalXP} XP
+                    </span>
+                  </div>
+                  <div className="xp-bar">
+                    <div
+                      className="xp-bar-fill transition-all duration-500 ease-out"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                    <span>{Math.round(percent)}% complété</span>
+                    <span>{selectedLanguage.totalXP - selectedLanguage.earnedXP} XP restants</span>
+                  </div>
                 </div>
-                <div className="xp-bar">
-                  <div
-                    className="xp-bar-fill transition-all duration-500 ease-out"
-                    style={{ width: `${percent}%` }}
-                  />
+              ) : (
+                <div className="text-center p-4 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">
+                    Connectez-vous pour suivre votre progression
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Votre progression sera sauvegardée et synchronisée
+                  </p>
                 </div>
-                <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{Math.round(percent)}% complété</span>
-                  <span>{selectedLanguage.totalXP - selectedLanguage.earnedXP} XP restants</span>
-                </div>
-              </div>
+              )}
 
               <Button
                 onClick={() => onLanguageSelect(selectedLanguage)}

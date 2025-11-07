@@ -41,11 +41,21 @@ export const useLanguageProgress = (languageId: string | undefined, enabled: boo
         });
 
         if (!res.ok) {
-          // Si pas connecté ou erreur, retourne les données statiques
+          // Si pas connecté ou erreur, retourne les données statiques avec progression à 0
           const staticLevelsForLang = staticLevels[languageId] || [];
           return {
-            language: staticLang,
-            levels: staticLevelsForLang,
+            language: {
+              ...staticLang,
+              currentLevel: 1,
+              completedLevels: 0,
+              earnedXP: 0,
+              totalXP: staticLang.totalXP,
+            },
+            levels: staticLevelsForLang.map(level => ({
+              ...level,
+              isCompleted: false,
+              isLocked: level.levelNumber > 1,
+            })),
             completedLevel: 0,
           };
         }
@@ -82,12 +92,22 @@ export const useLanguageProgress = (languageId: string | undefined, enabled: boo
           completedLevel: completed,
         };
       } catch (error) {
-        // En cas d'erreur réseau, retourne les données statiques
+        // En cas d'erreur réseau, retourne les données statiques avec progression à 0
         console.error("Erreur lors de la récupération de la progression:", error);
         const staticLevelsForLang = staticLevels[languageId] || [];
         return {
-          language: staticLang,
-          levels: staticLevelsForLang,
+          language: {
+            ...staticLang,
+            currentLevel: 1,
+            completedLevels: 0,
+            earnedXP: 0,
+            totalXP: staticLang.totalXP,
+          },
+          levels: staticLevelsForLang.map(level => ({
+            ...level,
+            isCompleted: false,
+            isLocked: level.levelNumber > 1,
+          })),
           completedLevel: 0,
         };
       }
