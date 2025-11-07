@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { X, MessageCircle, ChevronDown, ChevronUp, Sparkles, Minimize2, Maximize2, ArrowUp } from "lucide-react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { X, MessageCircle, ChevronDown, ChevronUp, Sparkles, Minimize2, Maximize2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -52,6 +52,8 @@ export function CracknChat({
   const [messageHistory, setMessageHistory] = useState<(CracknMessage & { timestamp?: number })[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -97,30 +99,39 @@ export function CracknChat({
     if (isOpen && scrollViewportRef.current) {
       const viewport = scrollViewportRef.current;
       // Scroll seulement si on est déjà près du bas (pour ne pas interrompre la lecture)
-      const isNearBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 100;
-      if (isNearBottom) {
+      const isNearBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 150;
+      if (isNearBottom || isAtBottom) {
         setTimeout(() => {
           viewport.scrollTo({
             top: viewport.scrollHeight,
             behavior: "smooth"
           });
+          setIsAtBottom(true);
         }, 100);
       }
     }
-  }, [messageHistory, isOpen]);
+  }, [messageHistory, isOpen, isAtBottom]);
 
-  // Vérifie si on doit afficher le bouton "remonter"
+  // Vérifie la position du scroll et affiche les boutons appropriés
   useEffect(() => {
     if (!isOpen || !scrollViewportRef.current) {
       setShowScrollToTop(false);
+      setShowScrollToBottom(false);
       return;
     }
 
     const handleScroll = () => {
       const viewport = scrollViewportRef.current;
       if (viewport) {
-        const isScrolled = viewport.scrollTop > 100;
-        setShowScrollToTop(isScrolled);
+        const scrollTop = viewport.scrollTop;
+        const scrollHeight = viewport.scrollHeight;
+        const clientHeight = viewport.clientHeight;
+        const isScrolledFromTop = scrollTop > 100;
+        const isScrolledFromBottom = scrollHeight - scrollTop - clientHeight > 150;
+        
+        setShowScrollToTop(isScrolledFromTop);
+        setShowScrollToBottom(isScrolledFromBottom);
+        setIsAtBottom(!isScrolledFromBottom);
       }
     };
 
@@ -131,7 +142,7 @@ export function CracknChat({
     return () => {
       viewport?.removeEventListener("scroll", handleScroll);
     };
-  }, [isOpen]);
+  }, [isOpen, messageHistory]);
 
   // Fonction pour remonter en haut
   const scrollToTop = useCallback(() => {
@@ -140,6 +151,17 @@ export function CracknChat({
         top: 0,
         behavior: "smooth"
       });
+    }
+  }, []);
+
+  // Fonction pour descendre en bas
+  const scrollToBottom = useCallback(() => {
+    if (scrollViewportRef.current) {
+      scrollViewportRef.current.scrollTo({
+        top: scrollViewportRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+      setIsAtBottom(true);
     }
   }, []);
 
@@ -170,6 +192,52 @@ export function CracknChat({
       return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     }
     return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  };
+
+  // Format de date pour les séparateurs (aujourd'hui, hier, date)
+  const formatDateSeparator = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (messageDate.getTime() === today.getTime()) {
+      return "Aujourd'hui";
+    } else if (messageDate.getTime() === yesterday.getTime()) {
+      return "Hier";
+    } else {
+      return date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    }
+  };
+
+  // Groupe les messages par date
+  const groupedMessages = useMemo(() => {
+    const groups: { date: string; messages: (CracknMessage & { timestamp?: number })[] }[] = [];
+    let currentDate = "";
+    
+    sortedMessages.forEach((msg) => {
+      if (!msg.timestamp) return;
+      
+      const dateKey = formatDateSeparator(msg.timestamp);
+      
+      if (dateKey !== currentDate) {
+        currentDate = dateKey;
+        groups.push({ date: dateKey, messages: [] });
+      }
+      
+      groups[groups.length - 1].messages.push(msg);
+    });
+    
+    return groups;
+  }, [sortedMessages]);
+
+  // Détermine si un message est récent (moins de 5 minutes)
+  const isRecentMessage = (timestamp?: number) => {
+    if (!timestamp) return false;
+    const diff = Date.now() - timestamp;
+    return diff < 5 * 60 * 1000; // 5 minutes
   };
 
   if (isMinimized) {
@@ -260,41 +328,74 @@ export function CracknChat({
                   <p className="text-xs mt-1">Crack'n apparaîtra ici quand il aura quelque chose à te dire !</p>
                 </div>
               ) : (
-                sortedMessages.map((msg, index) => {
-                  const emotion = msg.emotion || "happy";
-                  const emoji = CRACKN_EMOTIONS[emotion];
-                  const isLatest = index === sortedMessages.length - 1;
-                  
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
-                        isLatest 
-                          ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 animate-fade-in" 
-                          : "bg-background/50 border border-border/50"
-                      }`}
-                    >
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30">
-                          <span className="text-lg">{emoji}</span>
-                        </div>
+                groupedMessages.map((group, groupIndex) => (
+                  <div key={group.date} className="space-y-3">
+                    {/* Séparateur de date */}
+                    {groupIndex > 0 && (
+                      <div className="flex items-center gap-3 my-4">
+                        <div className="flex-1 h-px bg-border/50"></div>
+                        <span className="text-xs font-medium text-muted-foreground px-2">
+                          {group.date}
+                        </span>
+                        <div className="flex-1 h-px bg-border/50"></div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Crack'n</span>
-                          {msg.timestamp && (
-                            <span className="text-xs text-muted-foreground">
-                              {formatTime(msg.timestamp)}
-                            </span>
+                    )}
+                    
+                    {/* Messages du groupe */}
+                    {group.messages.map((msg, msgIndex) => {
+                      const emotion = msg.emotion || "happy";
+                      const emoji = CRACKN_EMOTIONS[emotion];
+                      const isRecent = isRecentMessage(msg.timestamp);
+                      const isLatest = groupIndex === groupedMessages.length - 1 && msgIndex === group.messages.length - 1;
+                      
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex items-start gap-3 p-3 rounded-lg transition-all relative ${
+                            isLatest 
+                              ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-2 border-cyan-400/40 animate-fade-in shadow-md" 
+                              : isRecent
+                              ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/20"
+                              : "bg-background/50 border border-border/50"
+                          }`}
+                        >
+                          {/* Indicateur de nouveau message */}
+                          {isRecent && !isLatest && (
+                            <div className="absolute -left-2 top-3 w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
                           )}
+                          
+                          <div className="flex-shrink-0">
+                            <div className={`w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md border border-white/30 ${
+                              isRecent ? "ring-2 ring-cyan-400/50" : ""
+                            }`}>
+                              <span className="text-lg">{emoji}</span>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300">Crack'n</span>
+                              {msg.timestamp && (
+                                <span className={`text-xs ${isRecent ? "text-cyan-600 dark:text-cyan-400 font-medium" : "text-muted-foreground"}`}>
+                                  {formatTime(msg.timestamp)}
+                                </span>
+                              )}
+                              {isRecent && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold">
+                                  Nouveau
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                              isRecent ? "text-foreground font-medium" : "text-foreground"
+                            }`}>
+                              {msg.text}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">
-                          {msg.text}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
+                      );
+                    })}
+                  </div>
+                ))
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -304,10 +405,22 @@ export function CracknChat({
               <Button
                 onClick={scrollToTop}
                 size="sm"
-                className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg z-10"
+                className="absolute top-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg z-10"
                 title="Remonter en haut"
               >
                 <ArrowUp className="w-4 h-4" />
+              </Button>
+            )}
+            
+            {/* Bouton pour descendre en bas */}
+            {showScrollToBottom && (
+              <Button
+                onClick={scrollToBottom}
+                size="sm"
+                className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg z-10"
+                title="Voir les derniers messages"
+              >
+                <ArrowDown className="w-4 h-4" />
               </Button>
             )}
           </div>

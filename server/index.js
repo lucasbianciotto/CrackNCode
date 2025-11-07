@@ -839,6 +839,99 @@ app.post("/api/admin/unlock-all", async (req, res) => {
 	}
 });
 
+// API Admin : Attribuer un succès manuellement
+app.post("/api/admin/award-achievement", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	
+	try {
+		const userId = req.user.googleId;
+		const { image } = req.body;
+		
+		if (!image) {
+			return res.status(400).json({ error: "image is required" });
+		}
+		
+		// Vérifie si le succès existe déjà
+		const existing = await prisma.succes.findFirst({
+			where: {
+				id_user: userId,
+				image: image,
+			},
+		});
+		
+		if (existing) {
+			return res.json({ 
+				success: true, 
+				message: "Succès déjà débloqué",
+				wasAlreadyUnlocked: true,
+			});
+		}
+		
+		// Crée le succès
+		await prisma.succes.create({
+			data: {
+				id_user: userId,
+				image: image,
+			},
+		});
+		
+		return res.json({ 
+			success: true, 
+			message: "Succès débloqué",
+			wasAlreadyUnlocked: false,
+		});
+	} catch (err) {
+		console.error("POST /api/admin/award-achievement error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
+// API Admin : Ajouter de l'XP manuellement
+app.post("/api/admin/add-xp", async (req, res) => {
+	if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+	
+	try {
+		const userId = req.user.googleId;
+		const { amount } = req.body;
+		
+		if (typeof amount !== "number" || amount < 0) {
+			return res.status(400).json({ error: "amount must be a positive number" });
+		}
+		
+		// Met à jour l'XP global
+		await prisma.user.update({
+			where: { id_google: userId },
+			data: {
+				xp_global: {
+					increment: amount,
+				},
+			},
+		});
+		
+		// Récupère le nouvel XP total
+		const user = await prisma.user.findUnique({
+			where: { id_google: userId },
+			select: { xp_global: true },
+		});
+		
+		// Vérifie et attribue les succès automatiquement (pour les succès basés sur l'XP)
+		const newAchievements = await checkAndAwardAchievements(userId, {
+			languageId: null,
+			levelNumber: null,
+		});
+		
+		return res.json({ 
+			success: true, 
+			message: `${amount} XP ajoutés`,
+			newXP: user?.xp_global || 0,
+			newAchievements,
+		});
+	} catch (err) {
+		console.error("POST /api/admin/add-xp error:", err);
+		return res.status(500).json({ error: "Server error" });
+	}
+});
+
 // FIN ADMIN
 // ============================================
 

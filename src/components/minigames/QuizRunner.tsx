@@ -4,8 +4,9 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { HelpCircle, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
+import { HelpCircle, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, ArrowRight, Wand2 } from "lucide-react";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
+import { isCheatModeEnabled } from "@/utils/cheatMode";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -118,10 +119,14 @@ export function QuizRunner({
         setSelected(optionId);
 
         const isCorrect = optionId === current.correctOptionId;
-        setResults((prev) => [
-            ...prev,
-            { questionId: current.id, selected: optionId, correct: isCorrect },
-        ]);
+        // Vérifie si cette question a déjà été répondue (pour éviter les doublons en mode cheat)
+        const existingResult = results.find(r => r.questionId === current.id);
+        if (!existingResult) {
+            setResults((prev) => [
+                ...prev,
+                { questionId: current.id, selected: optionId, correct: isCorrect },
+            ]);
+        }
         setLocked(true);
     };
 
@@ -143,6 +148,66 @@ export function QuizRunner({
         setResults([]);
         setFinished(false);
         setStarted(false);
+    };
+
+    // Fonction cheat : répondre automatiquement à toutes les questions
+    const autoAnswerAll = () => {
+        if (!isCheatModeEnabled()) {
+            toast.error("Mode cheat non activé. Activez-le depuis la page Admin.");
+            return;
+        }
+
+        if (finished) {
+            toast.info("Le quiz est déjà terminé !");
+            return;
+        }
+
+        // Répond automatiquement à toutes les questions restantes
+        const newResults: { questionId: string; selected: string; correct: boolean }[] = [];
+        let answered = false;
+
+        preparedQuestions.forEach((q) => {
+            // Vérifie si cette question a déjà été répondue
+            const existingResult = results.find(r => r.questionId === q.id);
+            if (!existingResult) {
+                // Sélectionne la bonne réponse
+                newResults.push({
+                    questionId: q.id,
+                    selected: q.correctOptionId,
+                    correct: true
+                });
+                answered = true;
+            }
+        });
+
+        if (answered) {
+            // Ajoute les nouvelles réponses aux résultats existants
+            setResults(prev => [...prev, ...newResults]);
+            
+            // Si on est sur une question non répondue, sélectionne automatiquement la bonne réponse
+            const currentResult = results.find(r => r.questionId === current.id);
+            if (!currentResult && !locked) {
+                // Sélectionne la bonne réponse pour la question actuelle
+                setSelected(current.correctOptionId);
+                // Ajoute le résultat pour la question actuelle
+                setResults(prev => {
+                    const exists = prev.find(r => r.questionId === current.id);
+                    if (!exists) {
+                        return [...prev, {
+                            questionId: current.id,
+                            selected: current.correctOptionId,
+                            correct: true
+                        }];
+                    }
+                    return prev;
+                });
+                setLocked(true);
+            }
+            
+            toast.success("✨ Toutes les questions répondues automatiquement ! Vous pouvez maintenant continuer.");
+        } else {
+            toast.info("Toutes les questions ont déjà été répondues !");
+        }
     };
 
     const handleCompleteLevel = async () => {
@@ -449,46 +514,72 @@ export function QuizRunner({
                                             })}
                                         </div>
 
-                                        {/* Feedback et navigation */}
-                                        {locked && (
-                                            <Card className={`p-4 border-2 ${selected === current.correctOptionId ? "border-green-500/50 bg-gradient-to-br from-green-900/30 to-emerald-900/30" : "border-red-500/50 bg-gradient-to-br from-red-900/30 to-orange-900/30"}`}>
-                                                <div className="space-y-3">
-                                                    <div className="flex items-center gap-2">
-                                                        {selected === current.correctOptionId ? (
-                                                            <CheckCircle2 className="w-6 h-6 text-green-400" />
-                                                        ) : (
-                                                            <XCircle className="w-6 h-6 text-red-400" />
-                                                        )}
-                                                        <span className={`font-bold text-lg ${selected === current.correctOptionId ? "text-green-400" : "text-red-400"}`}>
-                                                            {selected === current.correctOptionId ? "Bonne réponse ! 🎉" : "Mauvaise réponse 😔"}
-                                                        </span>
-                                                    </div>
-                                                    {current.explanation && (
-                                                        <div className="text-sm text-muted-foreground p-3 rounded-lg bg-background/30 border border-border/50">
-                                                            💡 {current.explanation}
-                                                        </div>
-                                                    )}
-                                                    <div className="flex justify-end pt-2">
-                                                        <Button 
-                                                            onClick={handleNext}
-                                                            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
-                                                        >
-                                                            {currentIdx + 1 < total ? (
-                                                                <>
-                                                                    Question suivante
-                                                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Trophy className="w-4 h-4 mr-2" />
-                                                                    Voir les résultats
-                                                                </>
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        )}
+                                 {/* Feedback et navigation */}
+                                 {locked && (
+                                     <Card className={`p-4 border-2 ${selected === current.correctOptionId ? "border-green-500/50 bg-gradient-to-br from-green-900/30 to-emerald-900/30" : "border-red-500/50 bg-gradient-to-br from-red-900/30 to-orange-900/30"}`}>
+                                         <div className="space-y-3">
+                                             <div className="flex items-center gap-2">
+                                                 {selected === current.correctOptionId ? (
+                                                     <CheckCircle2 className="w-6 h-6 text-green-400" />
+                                                 ) : (
+                                                     <XCircle className="w-6 h-6 text-red-400" />
+                                                 )}
+                                                 <span className={`font-bold text-lg ${selected === current.correctOptionId ? "text-green-400" : "text-red-400"}`}>
+                                                     {selected === current.correctOptionId ? "Bonne réponse ! 🎉" : "Mauvaise réponse 😔"}
+                                                 </span>
+                                             </div>
+                                             {current.explanation && (
+                                                 <div className="text-sm text-muted-foreground p-3 rounded-lg bg-background/30 border border-border/50">
+                                                     💡 {current.explanation}
+                                                 </div>
+                                             )}
+                                             <div className="flex flex-col gap-2 pt-2">
+                                                 {isCheatModeEnabled() && currentIdx + 1 < total && (
+                                                     <Button 
+                                                         onClick={autoAnswerAll}
+                                                         variant="outline"
+                                                         className="w-full border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20"
+                                                     >
+                                                         <Wand2 className="w-4 h-4 mr-2" />
+                                                         ✨ Répondre à toutes les questions (Cheat)
+                                                     </Button>
+                                                 )}
+                                                 <div className="flex justify-end">
+                                                     <Button 
+                                                         onClick={handleNext}
+                                                         className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                                                     >
+                                                         {currentIdx + 1 < total ? (
+                                                             <>
+                                                                 Question suivante
+                                                                 <ArrowRight className="w-4 h-4 ml-2" />
+                                                             </>
+                                                         ) : (
+                                                             <>
+                                                                 <Trophy className="w-4 h-4 mr-2" />
+                                                                 Voir les résultats
+                                                             </>
+                                                         )}
+                                                     </Button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </Card>
+                                 )}
+                                 
+                                 {/* Bouton cheat si pas encore répondu */}
+                                 {!locked && !finished && isCheatModeEnabled() && (
+                                     <Card className="p-4 border-blue-500/30 bg-blue-500/5">
+                                         <Button 
+                                             onClick={autoAnswerAll}
+                                             variant="outline"
+                                             className="w-full border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20"
+                                         >
+                                             <Wand2 className="w-4 h-4 mr-2" />
+                                             ✨ Répondre automatiquement (Cheat)
+                                         </Button>
+                                     </Card>
+                                 )}
                                     </>
                                 )}
                             </div>

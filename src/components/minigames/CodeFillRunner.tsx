@@ -4,8 +4,9 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Code2, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles } from "lucide-react";
+import { Code2, Clock, CheckCircle2, XCircle, Zap, Trophy, Target, Lightbulb, Sparkles, Wand2 } from "lucide-react";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
+import { isCheatModeEnabled } from "@/utils/cheatMode";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -154,6 +155,36 @@ export function CodeFillRunner({
         setValues(initialValues);
         setFinished(false);
         setStarted(false);
+    };
+
+    // Fonction cheat : remplir automatiquement tous les champs
+    const autoFillAll = () => {
+        if (!isCheatModeEnabled()) {
+            toast.error("Mode cheat non activé. Activez-le depuis la page Admin.");
+            return;
+        }
+
+        const newValues: Record<string, string> = {};
+        let filled = false;
+
+        blankIds.forEach((id) => {
+            const def = game.blanks.find((b) => b.id === id);
+            if (def) {
+                // Prend la première réponse correcte
+                const answer = Array.isArray(def.answer) ? def.answer[0] : def.answer;
+                newValues[id] = answer;
+                if (!values[id] || values[id] !== answer) {
+                    filled = true;
+                }
+            }
+        });
+
+        if (filled) {
+            setValues(newValues);
+            toast.success("✨ Tous les champs remplis automatiquement ! Vous pouvez maintenant terminer et valider.");
+        } else {
+            toast.info("Tous les champs sont déjà remplis correctement !");
+        }
     };
 
     const handleCompleteLevel = async () => {
@@ -410,19 +441,31 @@ export function CodeFillRunner({
                                             </div>
                                         </Card>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center justify-center gap-3">
-                                            <Button 
-                                                onClick={handleFinish}
-                                                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                                            >
-                                                <Trophy className="w-4 h-4 mr-2" />
-                                                Terminer
-                                            </Button>
-                                            <Button variant="secondary" onClick={handleRestart}>
-                                                Réinitialiser
-                                            </Button>
-                                        </div>
+                                 {/* Actions */}
+                                 <div className="flex flex-col items-center gap-3">
+                                     {isCheatModeEnabled() && !finished && (
+                                         <Button 
+                                             onClick={autoFillAll}
+                                             variant="outline"
+                                             className="w-full border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20"
+                                         >
+                                             <Wand2 className="w-4 h-4 mr-2" />
+                                             ✨ Remplir automatiquement (Cheat)
+                                         </Button>
+                                     )}
+                                     <div className="flex items-center justify-center gap-3 w-full">
+                                         <Button 
+                                             onClick={handleFinish}
+                                             className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                                         >
+                                             <Trophy className="w-4 h-4 mr-2" />
+                                             Terminer
+                                         </Button>
+                                         <Button variant="secondary" onClick={handleRestart}>
+                                             Réinitialiser
+                                         </Button>
+                                     </div>
+                                 </div>
                                     </>
                                 )}
                             </div>

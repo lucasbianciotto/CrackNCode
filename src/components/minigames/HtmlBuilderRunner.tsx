@@ -2,11 +2,12 @@ import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, XCircle, Lightbulb, Code2, Eye, Sparkles, Zap, Trophy, Target } from "lucide-react";
+import { CheckCircle2, XCircle, Lightbulb, Code2, Eye, Sparkles, Zap, Trophy, Target, Wand2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LevelCompleteCinematic } from "@/components/storytelling/LevelCompleteCinematic";
+import { isCheatModeEnabled } from "@/utils/cheatMode";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -121,20 +122,57 @@ export function HtmlBuilderRunner({
     }
   };
 
+  // Fonction cheat : remplir automatiquement tous les objectifs
+  const autoFillAll = () => {
+    if (!isCheatModeEnabled()) {
+      toast.error("Mode cheat non activé. Activez-le depuis la page Admin.");
+      return;
+    }
+
+    let newCode = code;
+    let filled = false;
+
+    // Remplit tous les objectifs manquants
+    game.goals.forEach((goal) => {
+      if (goal.selector === "h1" && !/\<h1[\s\S]*?\<\/h1\>/.test(newCode)) {
+        newCode = newCode.replace("</body>", "    <h1>Mon titre</h1>\n  </body>");
+        filled = true;
+      } else if (goal.selector === "p" && !/\<p[\s\S]*?\<\/p\>/.test(newCode)) {
+        newCode = newCode.replace("</body>", "    <p>Ceci est un paragraphe.</p>\n  </body>");
+        filled = true;
+      } else if (goal.selector.includes("a[href]") && !/\<a[\s\S]*?href[\s\S]*?\>/.test(newCode)) {
+        const hrefValue = goal.requireAttr === "href" ? "https://developer.mozilla.org/" : "https://example.com";
+        newCode = newCode.replace("</body>", `    <a href="${hrefValue}">Découvrir MDN</a>\n  </body>`);
+        filled = true;
+      }
+    });
+
+    if (filled) {
+      setCode(newCode);
+      setHintCount(0); // Reset hint count en mode cheat
+      toast.success("✨ Tous les objectifs remplis automatiquement ! Vous pouvez maintenant valider.");
+    } else {
+      toast.info("Tous les objectifs sont déjà remplis !");
+    }
+  };
+
   const handleCompleteLevel = async () => {
     if (!allOk || !languageId || !levelNumber) {
       toast.error("Impossible de valider le niveau");
       return;
     }
 
-    if (hasUsedTemplate) {
-      toast.error("Vous ne pouvez pas valider un niveau en utilisant le modèle complet. Essayez de le faire vous-même !");
-      return;
-    }
+    // En mode cheat, on ignore les restrictions
+    if (!isCheatModeEnabled()) {
+      if (hasUsedTemplate) {
+        toast.error("Vous ne pouvez pas valider un niveau en utilisant le modèle complet. Essayez de le faire vous-même !");
+        return;
+      }
 
-    if (hintCount >= MAX_HINTS) {
-      toast.error("Vous avez utilisé trop d'indices. Essayez de compléter le niveau avec moins d'aide !");
-      return;
+      if (hintCount >= MAX_HINTS) {
+        toast.error("Vous avez utilisé trop d'indices. Essayez de compléter le niveau avec moins d'aide !");
+        return;
+      }
     }
 
     try {
@@ -414,16 +452,29 @@ export function HtmlBuilderRunner({
                     )}
                   </div>
                   <div className="mt-3">
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      onClick={insertHintForCurrent} 
-                      disabled={!currentGoal || hintCount >= MAX_HINTS}
-                      className="w-full"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Indice ({hintCount}/{MAX_HINTS})
-                    </Button>
+              <div className="space-y-2">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={insertHintForCurrent} 
+                  disabled={!currentGoal || hintCount >= MAX_HINTS}
+                  className="w-full"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Indice ({hintCount}/{MAX_HINTS})
+                </Button>
+                {isCheatModeEnabled() && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={autoFillAll}
+                    className="w-full border-cyan-500/50 bg-cyan-500/10 hover:bg-cyan-500/20"
+                  >
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    ✨ Remplir automatiquement (Cheat)
+                  </Button>
+                )}
+              </div>
                   </div>
                 </Card>
               </TabsContent>
