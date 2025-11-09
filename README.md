@@ -371,12 +371,12 @@ CrackNCode/
 ## 👥 Contributeurs
 
 - **Lucas BIANCIOTTO** - [lucasbianciotto](https://github.com/lucasbianciotto)
-- **Rayane BOUDAOUDI**
-- **Amel BOUNNECHE**
-- **Dorian DI DOMENICO**
-- **Fabio VOLIANI**
-- **Hugo BOGOSSIAN**
-- **Killian ORSAL**
+- **Rayane BOUDAOUDI** - [rayanetks](https://github.com/RayaneTks)
+- **Amel BOUNNECHE** - [amelbounneche-05](https://github.com/amelbounneche-05)
+- **Dorian DI DOMENICO** 
+- **Fabio VOLIANI** - [fabiovoliani](https://github.com/FabioVoliani)
+- **Hugo BOGOSSIAN** 
+- **Killian ORSAL** - [killianorsal](https://github.com/KillianOrsal)
 
 ---
 
